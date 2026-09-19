@@ -772,6 +772,7 @@
     <input type="password" class="field-select" id="adminPasswordInput"
       placeholder="請輸入密碼" style="margin-top:12px;text-align:center;font-size:18px;letter-spacing:4px;"
       onkeydown="if(event.key==='Enter') submitAdminPassword()">
+    <p id="adminGateHint" style="color:var(--ink-soft);font-size:12.5px;margin-top:8px;display:none;">💡 提示:<span id="adminGateHintText"></span></p>
     <p id="adminGateError" style="color:var(--coral-deep);font-size:12.5px;margin-top:8px;display:none;">密碼錯誤,請再試一次</p>
     <div class="result-actions">
       <button class="ghost-btn" onclick="closeAdminGate()">取消</button>
@@ -801,6 +802,9 @@
 
     <label class="field-label">後台管理密碼(下次要進這個畫面時輸入)</label>
     <input type="text" class="field-select" id="cfgPassword">
+
+    <label class="field-label">密碼提示(輸入密碼時會顯示給你看,幫助想起密碼;留空則不顯示)</label>
+    <input type="text" class="field-select" id="cfgPasswordHint" placeholder="例如:我的幸運數字">
 
     <div class="result-actions">
       <button class="ghost-btn" onclick="closeMasterPanel()">取消</button>
@@ -996,7 +1000,8 @@ function defaultConfig(){
       {min:400, label:'🍩 甜點主廚'},
       {min:800, label:'🍩 英語甜點大師'},
     ],
-    parentPassword: '0000'
+    parentPassword: '0000',
+    passwordHint: ''
   };
 }
 function loadConfig(){
@@ -1189,6 +1194,13 @@ function closeRewardsInfo(){ document.getElementById('rewardsOverlay').hidden = 
 function openAdminGate(){
   document.getElementById('adminPasswordInput').value = '';
   document.getElementById('adminGateError').style.display = 'none';
+  const hintEl = document.getElementById('adminGateHint');
+  if(config.passwordHint){
+    document.getElementById('adminGateHintText').textContent = config.passwordHint;
+    hintEl.style.display = 'block';
+  } else {
+    hintEl.style.display = 'none';
+  }
   document.getElementById('adminGateOverlay').hidden = false;
 }
 function closeAdminGate(){ document.getElementById('adminGateOverlay').hidden = true; }
@@ -1208,6 +1220,7 @@ function openMasterPanel(){
   document.getElementById('cfgFinalText').value = config.finalRewardText;
   document.getElementById('cfgTiers').value = config.tiers.map(t=>t.min+','+t.label).join('\n');
   document.getElementById('cfgPassword').value = config.parentPassword;
+  document.getElementById('cfgPasswordHint').value = config.passwordHint || '';
   document.getElementById('masterOverlay').hidden = false;
 }
 function closeMasterPanel(){ document.getElementById('masterOverlay').hidden = true; }
@@ -1226,12 +1239,13 @@ function saveMasterPanel(){
     return {min, label};
   }).filter(Boolean).sort((a,b)=>a.min-b.min);
   const password = document.getElementById('cfgPassword').value.trim();
+  const passwordHint = document.getElementById('cfgPasswordHint').value.trim();
 
   if(!dailyGoal || dailyGoal<1 || !streakDays || streakDays<1 || !streakText || !finalText || tiers.length===0 || !password){
     alert('請確認每個欄位都有正確填寫(數字要大於0,等級門檻至少一行,格式:星星數,稱號)');
     return;
   }
-  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, parentPassword: password };
+  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, parentPassword: password, passwordHint: passwordHint };
   persistConfig();
   closeMasterPanel();
   refreshStatsBar();
