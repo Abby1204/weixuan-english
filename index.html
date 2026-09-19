@@ -474,6 +474,17 @@
   .role-name{ font-family:"Baloo 2"; font-weight:800; font-size:17px; color:var(--pink-deep); margin-bottom:6px; }
   .role-desc{ font-size:12px; color:var(--ink-soft); line-height:1.5; }
 
+  .reward-block{ margin-bottom:16px; }
+  .reward-title{ font-family:"Baloo 2"; font-weight:800; color:var(--pink-deep); font-size:15px; margin-bottom:4px; }
+  .reward-desc{ font-size:13px; color:var(--ink); line-height:1.6; }
+  .tier-list{ display:flex; flex-direction:column; gap:6px; }
+  .tier-row{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--cream-3); border-radius:10px; padding:7px 12px;
+    font-size:12.5px; font-weight:700; color:var(--ink-soft);
+  }
+  .tier-row.done{ background:var(--ok-light); color:var(--ok-deep); }
+
   .sparkle{
     position:fixed; pointer-events:none; font-size:20px; z-index:60;
     animation:sparkle-float 1s ease-out forwards;
@@ -565,7 +576,8 @@
       </button>
     </div>
     <div class="badges-row">
-      🍩 累積 <b>10</b> 顆星星解鎖「甜點學徒」・累積 <b>40</b> 顆解鎖「甜點主廚」・累積 <b>100</b> 顆解鎖「英語甜點大師」
+      🍩 累積 <b>60</b> 顆解鎖「甜點學徒」・<b>180</b> 顆「甜點師傅」・<b>400</b> 顆「甜點主廚」・<b>800</b> 顆「英語甜點大師」
+      <button class="edit-link" onclick="openRewardsInfo()" style="margin-left:auto;">🎁 獎勵說明</button>
     </div>
   </section>
 
@@ -712,6 +724,43 @@
       </button>
     </div>
     <button class="ghost-btn" id="modeCancelBtn" onclick="closeModePicker()" style="margin-top:16px;" hidden>取消</button>
+  </div>
+</div>
+
+<div class="overlay" id="rewardsOverlay" hidden>
+  <div class="result-card wide" style="text-align:left;">
+    <h2 style="text-align:center;margin-bottom:4px;">🎁 獎勵說明</h2>
+    <p style="font-size:12.5px;color:var(--ink-soft);text-align:center;margin-bottom:16px;">這是蔚瑄跟媽媽約定好的真實獎勵,達成之後記得去兌換喔!</p>
+
+    <div class="reward-block">
+      <div class="reward-title">📅 連續打卡獎勵</div>
+      <div class="reward-desc">每連續 <b>5</b> 天完成當天挑戰(當天累積 5 顆星以上算完成),就能獲得 <b>30 元零用錢</b>。之後每再滿 5 天都可以再兌換一次!</div>
+    </div>
+
+    <div class="reward-block">
+      <div class="reward-title">🏆 最終等級獎勵</div>
+      <div class="reward-desc">星星累積到 <b id="rewardFinalStars">800</b> 顆,晉升「英語甜點大師」,可以獲得 <b>200 元文具店自由選購</b>!</div>
+    </div>
+
+    <div class="reward-block">
+      <div class="reward-title">🍩 等級門檻一覽</div>
+      <div id="tierList" class="tier-list"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="primary-btn" onclick="closeRewardsInfo()">知道了!</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="celebrateOverlay" hidden>
+  <div class="result-card">
+    <div class="big-emoji" id="celebrateEmoji">🎉</div>
+    <h2 id="celebrateTitle">恭喜!</h2>
+    <p id="celebrateDesc" style="font-size:13.5px;color:var(--ink-soft);margin:10px 0 4px;line-height:1.6;"></p>
+    <div class="result-actions">
+      <button class="primary-btn" onclick="closeCelebrate()">太棒了!</button>
+    </div>
   </div>
 </div>
 
@@ -886,6 +935,25 @@ const GRAMMAR = [
   {t:'article',s:'He has ___ umbrella.',o:['a','an','the','x'],a:1,e:'umbrella 是母音開頭的單字,前面要用「an」。'},
 ];
 
+/* ================= REWARD CONFIG ================= */
+/* Real-world rewards Abby pays out — the app only tracks progress & celebrates milestones. */
+const TIERS = [
+  {min:0,   label:'🍩 甜甜圈新手'},
+  {min:60,  label:'🍩 甜點學徒'},
+  {min:180, label:'🍩 甜點師傅'},
+  {min:400, label:'🍩 甜點主廚'},
+  {min:800, label:'🍩 英語甜點大師'},
+];
+const FINAL_TIER_STARS = TIERS[TIERS.length-1].min;
+const FINAL_REWARD_TEXT = '200 元文具店自由選購';
+const STREAK_BONUS_DAYS = 5;
+const STREAK_BONUS_TEXT = '30 元零用錢';
+function currentTierLabel(stars){
+  let label = TIERS[0].label;
+  for(const t of TIERS){ if(stars >= t.min) label = t.label; }
+  return label;
+}
+
 /* ================= CLOUD SYNC (Supabase) ================= */
 /* Dedicated Supabase project (separate from the investment dashboard's DB),
    single "english_progress" table, no auth — any device reads/writes freely. */
@@ -958,7 +1026,8 @@ function loadSave(){
   return Object.assign({
     stars:0, bestStreak:0,
     combo:0, bestCombo:0,
-    dailyStreak:0, lastCheckinDate:null, starsToday:0, starsTodayDate:null
+    dailyStreak:0, lastCheckinDate:null, starsToday:0, starsTodayDate:null,
+    finalRewardCelebrated:false
   }, s);
 }
 function saveSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} schedulePush(); }
@@ -993,6 +1062,27 @@ function chooseMode(mode){
   refreshStatsBar();
   renderDailyBanner();
 }
+function openRewardsInfo(){
+  document.getElementById('rewardFinalStars').textContent = FINAL_TIER_STARS;
+  const list = document.getElementById('tierList');
+  list.innerHTML = '';
+  TIERS.forEach(t=>{
+    const done = save.stars >= t.min;
+    const row = document.createElement('div');
+    row.className = 'tier-row' + (done ? ' done' : '');
+    row.innerHTML = '<span>'+t.label+'</span><span>'+t.min+' 顆'+(done ? ' ✓' : '')+'</span>';
+    list.appendChild(row);
+  });
+  document.getElementById('rewardsOverlay').hidden = false;
+}
+function closeRewardsInfo(){ document.getElementById('rewardsOverlay').hidden = true; }
+function showCelebrate(emoji, title, desc){
+  document.getElementById('celebrateEmoji').textContent = emoji;
+  document.getElementById('celebrateTitle').textContent = title;
+  document.getElementById('celebrateDesc').textContent = desc;
+  document.getElementById('celebrateOverlay').hidden = false;
+}
+function closeCelebrate(){ document.getElementById('celebrateOverlay').hidden = true; }
 function updateCombo(ok){
   if(currentMode !== 'vicky') return;
   if(ok){ save.combo++; if(save.combo > save.bestCombo) save.bestCombo = save.combo; }
@@ -1070,12 +1160,7 @@ function refreshStatsBar(){
   document.getElementById('statStars').textContent = save.stars;
   document.getElementById('statCombo').textContent = save.bestCombo;
   document.getElementById('statDaily').textContent = save.dailyStreak;
-  const badgeEl = document.getElementById('statBadge');
-  let label = '🍩 甜甜圈新手';
-  if(save.stars >= 100) label = '🍩 英語甜點大師';
-  else if(save.stars >= 40) label = '🍩 甜點主廚';
-  else if(save.stars >= 10) label = '🍩 甜點學徒';
-  badgeEl.textContent = label;
+  document.getElementById('statBadge').textContent = currentTierLabel(save.stars);
   const modePill = document.getElementById('modePill');
   if(currentMode === 'parent'){
     modePill.textContent = '🔧 家長模式';
@@ -1178,6 +1263,13 @@ function addStars(n){
     const yesterday = dateStrOffset(today, -1);
     save.dailyStreak = (save.lastCheckinDate === yesterday) ? save.dailyStreak + 1 : 1;
     save.lastCheckinDate = today;
+    if(save.dailyStreak > 0 && save.dailyStreak % STREAK_BONUS_DAYS === 0){
+      showCelebrate('🎉', '連續打卡 ' + save.dailyStreak + ' 天!', '跟媽媽說一聲,可以兌換 ' + STREAK_BONUS_TEXT + ' 囉!');
+    }
+  }
+  if(save.stars >= FINAL_TIER_STARS && !save.finalRewardCelebrated){
+    save.finalRewardCelebrated = true;
+    showCelebrate('🏆', '恭喜晉升「英語甜點大師」!', '達成 ' + FINAL_TIER_STARS + ' 顆星,跟媽媽兌換 ' + FINAL_REWARD_TEXT + ' 吧!');
   }
   saveSave();
   refreshStatsBar();
@@ -1568,12 +1660,12 @@ function answerQuiz(chosenIdx, correctIdx, ev){
     quizScore++;
     document.getElementById('quizScore').textContent = quizScore;
     sparkleBurst(ev.clientX, ev.clientY);
+    addStars(1);
   }
   renderDots(document.getElementById('quizDots'), quizItems.length, quizIdx, quizResults);
   document.getElementById('quizNextBtn').style.display = 'inline-flex';
 }
 function finishQuiz(){
-  addStars(quizScore);
   const wrongCount = quizWrongItems.length;
   const wrongSnapshot = quizWrongItems.slice();
   showResult({
@@ -1770,12 +1862,12 @@ function checkSpell(){
     document.getElementById('spellScore').textContent = spellScore;
     const rect = document.getElementById('spellCard').getBoundingClientRect();
     sparkleBurst(rect.left + rect.width/2, rect.top + 60);
+    addStars(1);
   }
   renderDots(document.getElementById('spellDots'), spellItems.length, spellIdx, spellResults);
   document.getElementById('spellNextBtn').style.display = 'inline-flex';
 }
 function finishSpell(){
-  addStars(spellScore);
   showResult({
     emoji: spellScore===spellItems.length ? '🏆' : '🌟',
     title: spellScore===spellItems.length ? '全部拼對!你是拼字高手!' : '完成拼字挑戰!',
@@ -1866,12 +1958,12 @@ function answerGrammar(chosenIdx, ev){
     grammarScore++;
     document.getElementById('grammarScore').textContent = grammarScore;
     sparkleBurst(ev.clientX, ev.clientY);
+    addStars(1);
   }
   renderDots(document.getElementById('grammarDots'), grammarItems.length, grammarIdx, grammarResults);
   document.getElementById('grammarNextBtn').style.display = 'inline-flex';
 }
 function finishGrammar(){
-  addStars(grammarScore);
   showResult({
     emoji: grammarScore===grammarItems.length ? '🏆' : '🌟',
     title: grammarScore===grammarItems.length ? '文法全對!好厲害!' : '完成文法練習!',
