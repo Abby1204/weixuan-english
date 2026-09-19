@@ -550,7 +550,8 @@
       </div>
       <div class="card-controls">
         <button class="round-btn" onclick="event.stopPropagation();flashStep(-1)">⬅️</button>
-        <button class="round-btn primary" onclick="event.stopPropagation();speak(flashDeck[flashIdx].en)">🔊</button>
+        <button class="round-btn primary" onclick="event.stopPropagation();speak(flashDeck[flashIdx].en)" title="正常速度">🔊</button>
+        <button class="round-btn" onclick="event.stopPropagation();speak(flashDeck[flashIdx].en, 0.5)" title="慢速播放">🐢</button>
         <button class="round-btn" onclick="event.stopPropagation();shuffleFlash()">🔀</button>
         <button class="round-btn" onclick="event.stopPropagation();flashStep(1)">➡️</button>
       </div>
@@ -926,13 +927,13 @@ function shuffle(arr){
 }
 function pickN(arr, n){ return shuffle(arr).slice(0, Math.min(n, arr.length)); }
 
-function speak(text){
+function speak(text, rate){
   try{
     if(!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
-    u.rate = 0.85;
+    u.rate = rate || 0.85;
     speechSynthesis.speak(u);
   }catch(e){}
 }
