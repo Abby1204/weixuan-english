@@ -108,10 +108,11 @@
     border:2px solid var(--pink);
     display:flex;align-items:center;justify-content:center;
     font-size:30px;
+    line-height:1;
     box-shadow:0 4px 0 var(--shadow);
     flex:none;
   }
-  .mascot-icon{ display:inline-block; }
+  .mascot-icon{ display:inline-block; line-height:1; transform:translateY(0.05em); }
   .brand-text h1{ font-size:22px; color:var(--pink-deep); font-weight:800; }
   .brand-text p{ margin:2px 0 0; font-size:12.5px; color:var(--ink-soft); }
 
@@ -515,7 +516,7 @@
 
   <div class="topbar">
     <div class="brand">
-      <div class="mascot"><span class="mascot-icon">🐢</span></div>
+      <div class="mascot"><span class="mascot-icon">🐥</span></div>
       <div class="brand-text">
         <h1>蔚瑄的英語甜甜圈屋</h1>
         <p>🍩 Wei-Xuan's Donut English · 課程單字 &amp; 文法複習</p>
@@ -526,15 +527,15 @@
       <div class="stat-pill">🔥 最佳連擊 <span id="statCombo">0</span></div>
       <div class="stat-pill">📅 打卡 <span id="statDaily">0</span> 天</div>
       <div class="stat-pill" id="statBadge">🍩 甜甜圈新手</div>
-      <button class="stat-pill mode-pill" id="modePill" onclick="openModePicker()">🐢 蔚瑄模式</button>
+      <button class="stat-pill mode-pill" id="modePill" onclick="openModePicker()">🐥 蔚瑄模式</button>
     </div>
   </div>
 
   <!-- HOME -->
   <section class="screen" id="screen-home">
     <div class="home-intro">
-      <div class="mascot"><span class="mascot-icon">🐢</span></div>
-      <div class="speech" id="homeGreeting">哈囉,我是好奇地圖龜!先選好要複習的課程範圍,再挑一份甜點練習吧!🍩</div>
+      <div class="mascot"><span class="mascot-icon">🐥</span></div>
+      <div class="speech" id="homeGreeting">哈囉,我是蛋黃酥!先選好要複習的課程範圍,再挑一份甜點練習吧!🍩</div>
     </div>
     <div class="daily-banner" id="dailyBanner"></div>
     <button class="edit-link" id="adminEntryBtn" onclick="openAdminGate()" hidden>⚙️ 後台管理(需密碼)</button>
@@ -715,7 +716,7 @@
     <p style="font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;">選「蔚瑄模式」才會累積星星、連擊和打卡天數</p>
     <div class="role-row">
       <button class="role-card" onclick="chooseMode('vicky')">
-        <div class="role-icon">🐢</div>
+        <div class="role-icon">🐥</div>
         <div class="role-name">蔚瑄模式</div>
         <div class="role-desc">正式練習,答對會累積星星、連擊、每日打卡</div>
       </button>
@@ -1402,7 +1403,7 @@ function refreshStatsBar(){
     modePill.textContent = '🔧 家長模式';
     modePill.classList.add('parent');
   } else {
-    modePill.textContent = '🐢 蔚瑄模式';
+    modePill.textContent = '🐥 蔚瑄模式';
     modePill.classList.remove('parent');
   }
 }
