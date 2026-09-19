@@ -111,7 +111,7 @@
     box-shadow:0 4px 0 var(--shadow);
     flex:none;
   }
-  .mascot-icon{ filter:grayscale(1) brightness(1.7) contrast(0.85); display:inline-block; }
+  .mascot-icon{ display:inline-block; }
   .brand-text h1{ font-size:22px; color:var(--pink-deep); font-weight:800; }
   .brand-text p{ margin:2px 0 0; font-size:12.5px; color:var(--ink-soft); }
 
@@ -515,7 +515,7 @@
 
   <div class="topbar">
     <div class="brand">
-      <div class="mascot"><span class="mascot-icon">🐱</span></div>
+      <div class="mascot"><span class="mascot-icon">🐢</span></div>
       <div class="brand-text">
         <h1>蔚瑄的英語甜甜圈屋</h1>
         <p>🍩 Wei-Xuan's Donut English · 課程單字 &amp; 文法複習</p>
@@ -526,15 +526,15 @@
       <div class="stat-pill">🔥 最佳連擊 <span id="statCombo">0</span></div>
       <div class="stat-pill">📅 打卡 <span id="statDaily">0</span> 天</div>
       <div class="stat-pill" id="statBadge">🍩 甜甜圈新手</div>
-      <button class="stat-pill mode-pill" id="modePill" onclick="openModePicker()">🐱 蔚瑄模式</button>
+      <button class="stat-pill mode-pill" id="modePill" onclick="openModePicker()">🐢 蔚瑄模式</button>
     </div>
   </div>
 
   <!-- HOME -->
   <section class="screen" id="screen-home">
     <div class="home-intro">
-      <div class="mascot"><span class="mascot-icon">🐱</span></div>
-      <div class="speech" id="homeGreeting">哈囉,我是蔚瑄!先選好要複習的課程範圍,再挑一份甜點練習吧!🍩</div>
+      <div class="mascot"><span class="mascot-icon">🐢</span></div>
+      <div class="speech" id="homeGreeting">哈囉,我是好奇地圖龜!先選好要複習的課程範圍,再挑一份甜點練習吧!🍩</div>
     </div>
     <div class="daily-banner" id="dailyBanner"></div>
     <button class="edit-link" id="adminEntryBtn" onclick="openAdminGate()" hidden>⚙️ 後台管理(需密碼)</button>
@@ -715,7 +715,7 @@
     <p style="font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;">選「蔚瑄模式」才會累積星星、連擊和打卡天數</p>
     <div class="role-row">
       <button class="role-card" onclick="chooseMode('vicky')">
-        <div class="role-icon">🐱</div>
+        <div class="role-icon">🐢</div>
         <div class="role-name">蔚瑄模式</div>
         <div class="role-desc">正式練習,答對會累積星星、連擊、每日打卡</div>
       </button>
@@ -785,6 +785,17 @@
 <div class="overlay" id="masterOverlay" hidden>
   <div class="result-card wide" style="text-align:left;">
     <h2 style="text-align:center;margin-bottom:16px;">⚙️ 後台管理(MASTER)</h2>
+
+    <div class="reward-block" style="background:var(--cream-3);border-radius:14px;padding:14px;">
+      <div class="reward-title">⚖️ 手動調整星星(獎勵/處罰用)</div>
+      <div class="reward-desc" style="margin-bottom:10px;">目前星星:<b id="adjCurrentStars">0</b> 顆。輸入要調整的數量(負數表示扣除,例如操作不當或耍小心機),可以順便填原因方便之後查。</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <input type="number" class="field-select" id="adjStarAmount" placeholder="例如 -10" style="flex:1;min-width:100px;">
+        <input type="text" class="field-select" id="adjStarReason" placeholder="原因(選填)" style="flex:2;min-width:160px;">
+        <button class="ghost-btn" onclick="applyStarAdjustment()" style="white-space:nowrap;">套用調整</button>
+      </div>
+      <div id="adjHistoryList" style="display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto;"></div>
+    </div>
 
     <label class="field-label">每日打卡目標(星星數)</label>
     <input type="number" class="field-select" id="cfgDailyGoal" min="1">
@@ -1102,7 +1113,8 @@ function loadSave(){
     combo:0, bestCombo:0,
     dailyStreak:0, lastCheckinDate:null, starsToday:0, starsTodayDate:null,
     lastSeenDate:null,
-    finalRewardCelebrated:false
+    finalRewardCelebrated:false,
+    starAdjustments:[]
   }, s);
 }
 function saveSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} schedulePush(); }
@@ -1222,9 +1234,57 @@ function openMasterPanel(){
   document.getElementById('cfgTiers').value = config.tiers.map(t=>t.min+','+t.label).join('\n');
   document.getElementById('cfgPassword').value = config.parentPassword;
   document.getElementById('cfgPasswordHint').value = config.passwordHint || '';
+  document.getElementById('adjStarAmount').value = '';
+  document.getElementById('adjStarReason').value = '';
+  renderMasterCurrentStars();
+  renderAdjustmentHistory();
   document.getElementById('masterOverlay').hidden = false;
 }
 function closeMasterPanel(){ document.getElementById('masterOverlay').hidden = true; }
+function renderMasterCurrentStars(){
+  const el = document.getElementById('adjCurrentStars');
+  if(el) el.textContent = save.stars;
+}
+function renderAdjustmentHistory(){
+  const el = document.getElementById('adjHistoryList');
+  if(!el) return;
+  const list = save.starAdjustments || [];
+  if(list.length === 0){
+    el.innerHTML = '<div style="font-size:12px;color:var(--ink-soft);">尚無調整紀錄</div>';
+    return;
+  }
+  el.innerHTML = list.map(a=>
+    '<div class="tier-row" style="justify-content:space-between;">' +
+      '<span>' + a.date + (a.reason ? '・' + a.reason : '') + '</span>' +
+      '<span style="color:' + (a.amount<0 ? 'var(--coral-deep)' : 'var(--ok-deep)') + ';">' + (a.amount>0?'+':'') + a.amount + '</span>' +
+    '</div>'
+  ).join('');
+}
+function applyStarAdjustment(){
+  const amt = parseInt(document.getElementById('adjStarAmount').value, 10);
+  const reason = document.getElementById('adjStarReason').value.trim();
+  if(!amt || isNaN(amt)){
+    alert('請輸入要調整的星星數(正數增加、負數扣除,例如 -10)');
+    return;
+  }
+  save.stars = Math.max(0, save.stars + amt);
+  if(!Array.isArray(save.starAdjustments)) save.starAdjustments = [];
+  save.starAdjustments.unshift({
+    date: new Date().toLocaleString('zh-TW', {hour12:false}),
+    amount: amt,
+    reason: reason
+  });
+  save.starAdjustments = save.starAdjustments.slice(0, 20);
+  if(save.stars >= finalTierStars()) save.finalRewardCelebrated = true;
+  saveSave();
+  refreshStatsBar();
+  renderDailyBanner();
+  renderBadgesRow();
+  document.getElementById('adjStarAmount').value = '';
+  document.getElementById('adjStarReason').value = '';
+  renderMasterCurrentStars();
+  renderAdjustmentHistory();
+}
 function saveMasterPanel(){
   const dailyGoal = parseInt(document.getElementById('cfgDailyGoal').value, 10);
   const streakDays = parseInt(document.getElementById('cfgStreakDays').value, 10);
@@ -1342,7 +1402,7 @@ function refreshStatsBar(){
     modePill.textContent = '🔧 家長模式';
     modePill.classList.add('parent');
   } else {
-    modePill.textContent = '🐱 蔚瑄模式';
+    modePill.textContent = '🐢 蔚瑄模式';
     modePill.classList.remove('parent');
   }
 }
