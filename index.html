@@ -715,6 +715,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 /* ================= LESSON VOCAB DATA ================= */
 /* Transcribed from Vicky's "N7 Homework Word / Midterm Test Words" sheet */
@@ -885,6 +886,65 @@ const GRAMMAR = [
   {t:'article',s:'He has ___ umbrella.',o:['a','an','the','x'],a:1,e:'umbrella 是母音開頭的單字,前面要用「an」。'},
 ];
 
+/* ================= CLOUD SYNC (Supabase) ================= */
+/* Dedicated Supabase project (separate from the investment dashboard's DB),
+   single "english_progress" table, no auth — any device reads/writes freely. */
+const SUPABASE_URL = 'https://knjhbrrdquylhdodzrvq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_o14qyP8-l3RlXBFCatMcUQ_EVNEXsSv';
+const CLOUD_ROW_ID = 'vicky';
+let sb = null;
+try{
+  if(window.supabase) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}catch(e){ sb = null; }
+
+let cloudPushTimer = null;
+function schedulePush(){
+  if(!sb) return;
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(pushCloudData, 800);
+}
+async function pushCloudData(){
+  if(!sb) return;
+  try{
+    await sb.from('english_progress').upsert({
+      id: CLOUD_ROW_ID,
+      data: { save, wordStats, lessonOverrides },
+      updated_at: new Date().toISOString()
+    });
+  }catch(e){ /* offline, or table not created yet — local data stays safe */ }
+}
+function applyCloudPayload(remote){
+  if(!remote) return;
+  if(remote.save) save = Object.assign({}, save, remote.save);
+  if(remote.wordStats) wordStats = remote.wordStats;
+  if(remote.lessonOverrides) lessonOverrides = remote.lessonOverrides;
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){}
+  try{ localStorage.setItem(STATS_KEY, JSON.stringify(wordStats)); }catch(e){}
+  try{ localStorage.setItem(LESSON_KEY, JSON.stringify(lessonOverrides)); }catch(e){}
+  initSelection();
+  renderLessonGrid();
+  refreshStatsBar();
+  renderDailyBanner();
+}
+async function pullCloudData(){
+  if(!sb) return;
+  try{
+    const { data, error } = await sb.from('english_progress').select('data').eq('id', CLOUD_ROW_ID).maybeSingle();
+    if(error || !data) return;
+    applyCloudPayload(data.data);
+  }catch(e){ /* stay on local data */ }
+}
+function subscribeCloud(){
+  if(!sb) return;
+  try{
+    sb.channel('english_progress_changes')
+      .on('postgres_changes', {event:'*', schema:'public', table:'english_progress', filter:'id=eq.'+CLOUD_ROW_ID}, (payload)=>{
+        if(payload.new && payload.new.data) applyCloudPayload(payload.new.data);
+      })
+      .subscribe();
+  }catch(e){}
+}
+
 /* ================= STATE / PERSISTENCE ================= */
 const SAVE_KEY = 'pipiForest_v1';
 const LESSON_KEY = 'pipiForest_lessons_v1';
@@ -901,7 +961,7 @@ function loadSave(){
     dailyStreak:0, lastCheckinDate:null, starsToday:0, starsTodayDate:null
   }, s);
 }
-function saveSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} }
+function saveSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} schedulePush(); }
 let save = loadSave();
 
 const MODE_KEY = 'pipiForest_mode_v1';
@@ -953,7 +1013,7 @@ function loadLessonOverrides(){
   }catch(e){}
   return {};
 }
-function persistLessonOverrides(){ try{ localStorage.setItem(LESSON_KEY, JSON.stringify(lessonOverrides)); }catch(e){} }
+function persistLessonOverrides(){ try{ localStorage.setItem(LESSON_KEY, JSON.stringify(lessonOverrides)); }catch(e){} schedulePush(); }
 let lessonOverrides = loadLessonOverrides();
 
 const STATS_KEY = 'pipiForest_wordstats_v1';
@@ -964,7 +1024,7 @@ function loadWordStats(){
   }catch(e){}
   return {};
 }
-function persistWordStats(){ try{ localStorage.setItem(STATS_KEY, JSON.stringify(wordStats)); }catch(e){} }
+function persistWordStats(){ try{ localStorage.setItem(STATS_KEY, JSON.stringify(wordStats)); }catch(e){} schedulePush(); }
 let wordStats = loadWordStats();
 function bumpWordStat(en, correct){
   const key = en.toLowerCase();
@@ -1247,6 +1307,7 @@ function goHome(){
   document.getElementById('homeGreeting').textContent = GREETINGS[Math.floor(Math.random()*GREETINGS.length)];
   renderLessonGrid();
   renderDailyBanner();
+  pullCloudData();
 }
 function showScreen(name){
   ['home','flash','quiz','spell','grammar'].forEach(s=>{
@@ -1828,6 +1889,8 @@ renderDailyBanner();
 setupFlashSwipe();
 showScreen('home');
 if(!currentMode) openModePicker();
+pullCloudData();
+subscribeCloud();
 </script>
 </body>
 </html>
