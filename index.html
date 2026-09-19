@@ -536,6 +536,7 @@
       <div class="speech" id="homeGreeting">哈囉,我是蔚瑄!先選好要複習的課程範圍,再挑一份甜點練習吧!🍩</div>
     </div>
     <div class="daily-banner" id="dailyBanner"></div>
+    <button class="edit-link" id="adminEntryBtn" onclick="openAdminGate()" hidden>⚙️ 後台管理(需密碼)</button>
 
     <div class="lesson-select-card">
       <div class="lhead">
@@ -576,7 +577,7 @@
       </button>
     </div>
     <div class="badges-row">
-      🍩 累積 <b>60</b> 顆解鎖「甜點學徒」・<b>180</b> 顆「甜點師傅」・<b>400</b> 顆「甜點主廚」・<b>800</b> 顆「英語甜點大師」
+      <span id="badgesRowText"></span>
       <button class="edit-link" onclick="openRewardsInfo()" style="margin-left:auto;">🎁 獎勵說明</button>
     </div>
   </section>
@@ -734,12 +735,12 @@
 
     <div class="reward-block">
       <div class="reward-title">📅 連續打卡獎勵</div>
-      <div class="reward-desc">每連續 <b>5</b> 天完成當天挑戰(當天累積 5 顆星以上算完成),就能獲得 <b>30 元零用錢</b>。之後每再滿 5 天都可以再兌換一次!</div>
+      <div class="reward-desc">每連續 <b id="rewardStreakDays">5</b> 天完成當天挑戰(當天累積 <b id="rewardGoalStars">5</b> 顆星以上算完成),就能獲得 <b id="rewardStreakText">30 元零用錢</b>。之後每再滿 <span id="rewardStreakDays2">5</span> 天都可以再兌換一次!</div>
     </div>
 
     <div class="reward-block">
       <div class="reward-title">🏆 最終等級獎勵</div>
-      <div class="reward-desc">星星累積到 <b id="rewardFinalStars">800</b> 顆,晉升「英語甜點大師」,可以獲得 <b>200 元文具店自由選購</b>!</div>
+      <div class="reward-desc">星星累積到 <b id="rewardFinalStars">800</b> 顆,晉升「<span id="rewardFinalLabel">英語甜點大師</span>」,可以獲得 <b id="rewardFinalText">200 元文具店自由選購</b>!</div>
     </div>
 
     <div class="reward-block">
@@ -760,6 +761,50 @@
     <p id="celebrateDesc" style="font-size:13.5px;color:var(--ink-soft);margin:10px 0 4px;line-height:1.6;"></p>
     <div class="result-actions">
       <button class="primary-btn" onclick="closeCelebrate()">太棒了!</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="adminGateOverlay" hidden>
+  <div class="result-card">
+    <div class="big-emoji">🔒</div>
+    <h2>後台管理密碼</h2>
+    <input type="password" class="field-select" id="adminPasswordInput"
+      placeholder="請輸入密碼" style="margin-top:12px;text-align:center;font-size:18px;letter-spacing:4px;"
+      onkeydown="if(event.key==='Enter') submitAdminPassword()">
+    <p id="adminGateError" style="color:var(--coral-deep);font-size:12.5px;margin-top:8px;display:none;">密碼錯誤,請再試一次</p>
+    <div class="result-actions">
+      <button class="ghost-btn" onclick="closeAdminGate()">取消</button>
+      <button class="primary-btn" onclick="submitAdminPassword()">進入</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="masterOverlay" hidden>
+  <div class="result-card wide" style="text-align:left;">
+    <h2 style="text-align:center;margin-bottom:16px;">⚙️ 後台管理(MASTER)</h2>
+
+    <label class="field-label">每日打卡目標(星星數)</label>
+    <input type="number" class="field-select" id="cfgDailyGoal" min="1">
+
+    <label class="field-label">連續打卡幾天可以兌換獎勵</label>
+    <input type="number" class="field-select" id="cfgStreakDays" min="1">
+
+    <label class="field-label">打卡獎勵內容(文字)</label>
+    <input type="text" class="field-select" id="cfgStreakText">
+
+    <label class="field-label">最終等級獎勵內容(文字)</label>
+    <input type="text" class="field-select" id="cfgFinalText">
+
+    <label class="field-label">等級門檻(每行一個,格式:<b>星星數,稱號</b>,由低到高排序,最後一行是最終等級)</label>
+    <textarea class="field-textarea" id="cfgTiers" rows="6" placeholder="0,🍩 甜甜圈新手&#10;60,🍩 甜點學徒"></textarea>
+
+    <label class="field-label">後台管理密碼(下次要進這個畫面時輸入)</label>
+    <input type="text" class="field-select" id="cfgPassword">
+
+    <div class="result-actions">
+      <button class="ghost-btn" onclick="closeMasterPanel()">取消</button>
+      <button class="primary-btn" onclick="saveMasterPanel()">💾 儲存設定</button>
     </div>
   </div>
 </div>
@@ -935,22 +980,41 @@ const GRAMMAR = [
   {t:'article',s:'He has ___ umbrella.',o:['a','an','the','x'],a:1,e:'umbrella 是母音開頭的單字,前面要用「an」。'},
 ];
 
-/* ================= REWARD CONFIG ================= */
+/* ================= REWARD CONFIG (editable via Parent-mode admin panel) ================= */
 /* Real-world rewards Abby pays out — the app only tracks progress & celebrates milestones. */
-const TIERS = [
-  {min:0,   label:'🍩 甜甜圈新手'},
-  {min:60,  label:'🍩 甜點學徒'},
-  {min:180, label:'🍩 甜點師傅'},
-  {min:400, label:'🍩 甜點主廚'},
-  {min:800, label:'🍩 英語甜點大師'},
-];
-const FINAL_TIER_STARS = TIERS[TIERS.length-1].min;
-const FINAL_REWARD_TEXT = '200 元文具店自由選購';
-const STREAK_BONUS_DAYS = 5;
-const STREAK_BONUS_TEXT = '30 元零用錢';
+const CONFIG_KEY = 'pipiForest_config_v1';
+function defaultConfig(){
+  return {
+    dailyGoalStars: 5,
+    streakBonusDays: 5,
+    streakBonusText: '30 元零用錢',
+    finalRewardText: '200 元文具店自由選購',
+    tiers: [
+      {min:0,   label:'🍩 甜甜圈新手'},
+      {min:60,  label:'🍩 甜點學徒'},
+      {min:180, label:'🍩 甜點師傅'},
+      {min:400, label:'🍩 甜點主廚'},
+      {min:800, label:'🍩 英語甜點大師'},
+    ],
+    parentPassword: '0000'
+  };
+}
+function loadConfig(){
+  let c = {};
+  try{
+    const raw = localStorage.getItem(CONFIG_KEY);
+    if(raw) c = JSON.parse(raw);
+  }catch(e){}
+  const merged = Object.assign({}, defaultConfig(), c);
+  if(!Array.isArray(merged.tiers) || merged.tiers.length===0) merged.tiers = defaultConfig().tiers;
+  return merged;
+}
+function persistConfig(){ try{ localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }catch(e){} schedulePush(); }
+let config = loadConfig();
+function finalTierStars(){ return config.tiers[config.tiers.length-1].min; }
 function currentTierLabel(stars){
-  let label = TIERS[0].label;
-  for(const t of TIERS){ if(stars >= t.min) label = t.label; }
+  let label = config.tiers[0].label;
+  for(const t of config.tiers){ if(stars >= t.min) label = t.label; }
   return label;
 }
 
@@ -976,7 +1040,7 @@ async function pushCloudData(){
   try{
     await sb.from('english_progress').upsert({
       id: CLOUD_ROW_ID,
-      data: { save, wordStats, lessonOverrides },
+      data: { save, wordStats, lessonOverrides, config },
       updated_at: new Date().toISOString()
     });
   }catch(e){ /* offline, or table not created yet — local data stays safe */ }
@@ -986,13 +1050,17 @@ function applyCloudPayload(remote){
   if(remote.save) save = Object.assign({}, save, remote.save);
   if(remote.wordStats) wordStats = remote.wordStats;
   if(remote.lessonOverrides) lessonOverrides = remote.lessonOverrides;
+  if(remote.config) config = Object.assign({}, config, remote.config);
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){}
   try{ localStorage.setItem(STATS_KEY, JSON.stringify(wordStats)); }catch(e){}
   try{ localStorage.setItem(LESSON_KEY, JSON.stringify(lessonOverrides)); }catch(e){}
+  try{ localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }catch(e){}
+  checkDailyStatus();
   initSelection();
   renderLessonGrid();
   refreshStatsBar();
   renderDailyBanner();
+  renderBadgesRow();
 }
 async function pullCloudData(){
   if(!sb) return;
@@ -1027,6 +1095,7 @@ function loadSave(){
     stars:0, bestStreak:0,
     combo:0, bestCombo:0,
     dailyStreak:0, lastCheckinDate:null, starsToday:0, starsTodayDate:null,
+    lastSeenDate:null,
     finalRewardCelebrated:false
   }, s);
 }
@@ -1047,6 +1116,32 @@ function dateStrOffset(dateString, days){
   dt.setDate(dt.getDate()+days);
   return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
 }
+function daysBetweenDates(a, b){
+  const [ay,am,ad] = a.split('-').map(Number);
+  const [by,bm,bd] = b.split('-').map(Number);
+  const da = new Date(ay,am-1,ad), db = new Date(by,bm-1,bd);
+  return Math.round((db-da)/86400000);
+}
+function checkDailyStatus(){
+  if(currentMode !== 'vicky') return;
+  const today = todayStr();
+  if(save.dailyStreak > 0 && save.lastCheckinDate){
+    const yesterday = dateStrOffset(today, -1);
+    if(save.lastCheckinDate !== today && save.lastCheckinDate !== yesterday){
+      save.dailyStreak = 0; // streak broken — reset immediately instead of waiting for the next check-in
+    }
+  }
+  if(save.lastSeenDate && save.lastSeenDate !== today){
+    const gap = daysBetweenDates(save.lastSeenDate, today);
+    if(gap >= 1){
+      const greetEl = document.getElementById('homeGreeting');
+      if(greetEl) greetEl.textContent = '哈囉,好久不見!上次看到你是 ' + gap + ' 天前,我們重新開始打卡吧!🍩';
+    }
+  }
+  save.lastSeenDate = today;
+  saveSave();
+  renderDailyBanner();
+}
 function openModePicker(){
   document.getElementById('modeCancelBtn').hidden = !currentMode;
   document.getElementById('modeOverlay').hidden = false;
@@ -1059,14 +1154,28 @@ function chooseMode(mode){
   currentMode = mode;
   try{ localStorage.setItem(MODE_KEY, mode); }catch(e){}
   document.getElementById('modeOverlay').hidden = true;
+  checkDailyStatus();
   refreshStatsBar();
   renderDailyBanner();
 }
+function renderBadgesRow(){
+  const el = document.getElementById('badgesRowText');
+  if(!el) return;
+  el.innerHTML = '🍩 累積 ' + config.tiers.slice(1).map(t=>
+    '<b>'+t.min+'</b> 顆「'+t.label.replace(/^🍩\s*/,'')+'」'
+  ).join('・');
+}
 function openRewardsInfo(){
-  document.getElementById('rewardFinalStars').textContent = FINAL_TIER_STARS;
+  document.getElementById('rewardGoalStars').textContent = config.dailyGoalStars;
+  document.getElementById('rewardStreakDays').textContent = config.streakBonusDays;
+  document.getElementById('rewardStreakDays2').textContent = config.streakBonusDays;
+  document.getElementById('rewardStreakText').textContent = config.streakBonusText;
+  document.getElementById('rewardFinalStars').textContent = finalTierStars();
+  document.getElementById('rewardFinalLabel').textContent = config.tiers[config.tiers.length-1].label.replace(/^🍩\s*/,'');
+  document.getElementById('rewardFinalText').textContent = config.finalRewardText;
   const list = document.getElementById('tierList');
   list.innerHTML = '';
-  TIERS.forEach(t=>{
+  config.tiers.forEach(t=>{
     const done = save.stars >= t.min;
     const row = document.createElement('div');
     row.className = 'tier-row' + (done ? ' done' : '');
@@ -1076,6 +1185,58 @@ function openRewardsInfo(){
   document.getElementById('rewardsOverlay').hidden = false;
 }
 function closeRewardsInfo(){ document.getElementById('rewardsOverlay').hidden = true; }
+
+function openAdminGate(){
+  document.getElementById('adminPasswordInput').value = '';
+  document.getElementById('adminGateError').style.display = 'none';
+  document.getElementById('adminGateOverlay').hidden = false;
+}
+function closeAdminGate(){ document.getElementById('adminGateOverlay').hidden = true; }
+function submitAdminPassword(){
+  const val = document.getElementById('adminPasswordInput').value;
+  if(val === config.parentPassword){
+    closeAdminGate();
+    openMasterPanel();
+  } else {
+    document.getElementById('adminGateError').style.display = 'block';
+  }
+}
+function openMasterPanel(){
+  document.getElementById('cfgDailyGoal').value = config.dailyGoalStars;
+  document.getElementById('cfgStreakDays').value = config.streakBonusDays;
+  document.getElementById('cfgStreakText').value = config.streakBonusText;
+  document.getElementById('cfgFinalText').value = config.finalRewardText;
+  document.getElementById('cfgTiers').value = config.tiers.map(t=>t.min+','+t.label).join('\n');
+  document.getElementById('cfgPassword').value = config.parentPassword;
+  document.getElementById('masterOverlay').hidden = false;
+}
+function closeMasterPanel(){ document.getElementById('masterOverlay').hidden = true; }
+function saveMasterPanel(){
+  const dailyGoal = parseInt(document.getElementById('cfgDailyGoal').value, 10);
+  const streakDays = parseInt(document.getElementById('cfgStreakDays').value, 10);
+  const streakText = document.getElementById('cfgStreakText').value.trim();
+  const finalText = document.getElementById('cfgFinalText').value.trim();
+  const tierLines = document.getElementById('cfgTiers').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const tiers = tierLines.map(line=>{
+    const idx = line.indexOf(',');
+    if(idx===-1) return null;
+    const min = parseInt(line.slice(0,idx).trim(), 10);
+    const label = line.slice(idx+1).trim();
+    if(isNaN(min) || !label) return null;
+    return {min, label};
+  }).filter(Boolean).sort((a,b)=>a.min-b.min);
+  const password = document.getElementById('cfgPassword').value.trim();
+
+  if(!dailyGoal || dailyGoal<1 || !streakDays || streakDays<1 || !streakText || !finalText || tiers.length===0 || !password){
+    alert('請確認每個欄位都有正確填寫(數字要大於0,等級門檻至少一行,格式:星星數,稱號)');
+    return;
+  }
+  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, parentPassword: password };
+  persistConfig();
+  closeMasterPanel();
+  refreshStatsBar();
+  renderBadgesRow();
+}
 function showCelebrate(emoji, title, desc){
   document.getElementById('celebrateEmoji').textContent = emoji;
   document.getElementById('celebrateTitle').textContent = title;
@@ -1172,6 +1333,8 @@ function refreshStatsBar(){
 }
 function renderDailyBanner(){
   const el = document.getElementById('dailyBanner');
+  const adminBtn = document.getElementById('adminEntryBtn');
+  if(adminBtn) adminBtn.hidden = (currentMode !== 'parent');
   if(!el) return;
   if(currentMode === 'parent'){
     el.className = 'parent-banner';
@@ -1183,9 +1346,9 @@ function renderDailyBanner(){
   const doneToday = save.lastCheckinDate === today;
   const todayCount = (save.starsTodayDate === today) ? save.starsToday : 0;
   if(doneToday){
-    el.textContent = '✅ 今天已經打卡了!連續 ' + save.dailyStreak + ' 天,明天再拿5顆星維持紀錄吧!';
+    el.textContent = '✅ 今天已經打卡了!連續 ' + save.dailyStreak + ' 天,明天再拿' + config.dailyGoalStars + '顆星維持紀錄吧!';
   } else {
-    const remain = Math.max(0, 5 - todayCount);
+    const remain = Math.max(0, config.dailyGoalStars - todayCount);
     el.textContent = '📅 今天再拿 ' + remain + ' 顆星就能完成每日打卡(目前連續 ' + save.dailyStreak + ' 天)';
   }
 }
@@ -1259,17 +1422,19 @@ function addStars(n){
   const today = todayStr();
   if(save.starsTodayDate !== today){ save.starsTodayDate = today; save.starsToday = 0; }
   save.starsToday += n;
-  if(save.starsToday >= 5 && save.lastCheckinDate !== today){
+  if(save.starsToday >= config.dailyGoalStars && save.lastCheckinDate !== today){
     const yesterday = dateStrOffset(today, -1);
     save.dailyStreak = (save.lastCheckinDate === yesterday) ? save.dailyStreak + 1 : 1;
     save.lastCheckinDate = today;
-    if(save.dailyStreak > 0 && save.dailyStreak % STREAK_BONUS_DAYS === 0){
-      showCelebrate('🎉', '連續打卡 ' + save.dailyStreak + ' 天!', '跟媽媽說一聲,可以兌換 ' + STREAK_BONUS_TEXT + ' 囉!');
+    if(save.dailyStreak > 0 && save.dailyStreak % config.streakBonusDays === 0){
+      showCelebrate('🎉', '連續打卡 ' + save.dailyStreak + ' 天!', '跟媽媽說一聲,可以兌換 ' + config.streakBonusText + ' 囉!');
     }
   }
-  if(save.stars >= FINAL_TIER_STARS && !save.finalRewardCelebrated){
+  const finalStars = finalTierStars();
+  const finalLabel = config.tiers[config.tiers.length-1].label.replace(/^🍩\s*/,'');
+  if(save.stars >= finalStars && !save.finalRewardCelebrated){
     save.finalRewardCelebrated = true;
-    showCelebrate('🏆', '恭喜晉升「英語甜點大師」!', '達成 ' + FINAL_TIER_STARS + ' 顆星,跟媽媽兌換 ' + FINAL_REWARD_TEXT + ' 吧!');
+    showCelebrate('🏆', '恭喜晉升「' + finalLabel + '」!', '達成 ' + finalStars + ' 顆星,跟媽媽兌換 ' + config.finalRewardText + ' 吧!');
   }
   saveSave();
   refreshStatsBar();
@@ -1977,6 +2142,8 @@ function finishGrammar(){
 refreshStatsBar();
 initSelection();
 renderLessonGrid();
+renderBadgesRow();
+checkDailyStatus();
 renderDailyBanner();
 setupFlashSwipe();
 showScreen('home');
