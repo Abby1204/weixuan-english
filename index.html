@@ -127,6 +127,22 @@
     color:var(--ink);
     font-variant-numeric:tabular-nums;
   }
+  .mode-pill{
+    font-family:inherit; cursor:pointer; border:1.5px solid var(--pink);
+    background:var(--pink-light); color:var(--pink-deep);
+  }
+  .mode-pill.parent{ border-color:var(--sky); background:color-mix(in srgb, var(--sky) 20%, var(--cream-2)); color:var(--ink); }
+  .daily-banner{
+    font-size:12.5px; font-weight:700; color:var(--pink-deep);
+    background:var(--cream-2); border:1px dashed var(--line);
+    border-radius:14px; padding:10px 14px; margin-bottom:20px;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .parent-banner{
+    font-size:12.5px; font-weight:700; color:var(--ink);
+    background:color-mix(in srgb, var(--sky) 16%, var(--cream-2)); border:1px dashed var(--sky);
+    border-radius:14px; padding:10px 14px; margin-bottom:20px;
+  }
 
   .speech{
     position:relative;
@@ -446,6 +462,18 @@
   }
   .field-textarea{ resize:vertical; line-height:1.6; }
 
+  .role-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:480px){ .role-row{ grid-template-columns:1fr; } }
+  .role-card{
+    font-family:inherit; cursor:pointer; text-align:center;
+    background:var(--cream-2); border:2px solid var(--line); border-radius:18px;
+    padding:20px 14px; box-shadow:0 5px 0 var(--shadow);
+  }
+  .role-card:hover{ border-color:var(--pink); transform:translateY(-2px); }
+  .role-icon{ font-size:40px; margin-bottom:8px; }
+  .role-name{ font-family:"Baloo 2"; font-weight:800; font-size:17px; color:var(--pink-deep); margin-bottom:6px; }
+  .role-desc{ font-size:12px; color:var(--ink-soft); line-height:1.5; }
+
   .sparkle{
     position:fixed; pointer-events:none; font-size:20px; z-index:60;
     animation:sparkle-float 1s ease-out forwards;
@@ -483,8 +511,10 @@
     </div>
     <div class="stats">
       <div class="stat-pill">⭐ <span id="statStars">0</span></div>
-      <div class="stat-pill">🔥 最佳連勝 <span id="statStreak">0</span></div>
+      <div class="stat-pill">🔥 最佳連擊 <span id="statCombo">0</span></div>
+      <div class="stat-pill">📅 打卡 <span id="statDaily">0</span> 天</div>
       <div class="stat-pill" id="statBadge">🍩 甜甜圈新手</div>
+      <button class="stat-pill mode-pill" id="modePill" onclick="openModePicker()">🐱 蔚瑄模式</button>
     </div>
   </div>
 
@@ -494,6 +524,7 @@
       <div class="mascot"><span class="mascot-icon">🐱</span></div>
       <div class="speech" id="homeGreeting">哈囉,我是蔚瑄!先選好要複習的課程範圍,再挑一份甜點練習吧!🍩</div>
     </div>
+    <div class="daily-banner" id="dailyBanner"></div>
 
     <div class="lesson-select-card">
       <div class="lhead">
@@ -661,6 +692,26 @@
       <button class="ghost-btn" onclick="closeEditor()">取消</button>
       <button class="primary-btn" onclick="saveEditor()">💾 儲存這一課</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="modeOverlay" hidden>
+  <div class="result-card wide" style="text-align:center;">
+    <h2 style="margin-bottom:4px;">你是誰在玩呢?</h2>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;">選「蔚瑄模式」才會累積星星、連擊和打卡天數</p>
+    <div class="role-row">
+      <button class="role-card" onclick="chooseMode('vicky')">
+        <div class="role-icon">🐱</div>
+        <div class="role-name">蔚瑄模式</div>
+        <div class="role-desc">正式練習,答對會累積星星、連擊、每日打卡</div>
+      </button>
+      <button class="role-card" onclick="chooseMode('parent')">
+        <div class="role-icon">🔧</div>
+        <div class="role-name">家長測試模式</div>
+        <div class="role-desc">自由測試所有功能,不會影響蔚瑄的紀錄</div>
+      </button>
+    </div>
+    <button class="ghost-btn" id="modeCancelBtn" onclick="closeModePicker()" style="margin-top:16px;" hidden>取消</button>
   </div>
 </div>
 
@@ -839,14 +890,61 @@ const SAVE_KEY = 'pipiForest_v1';
 const LESSON_KEY = 'pipiForest_lessons_v1';
 
 function loadSave(){
+  let s = {};
   try{
     const raw = localStorage.getItem(SAVE_KEY);
-    if(raw) return JSON.parse(raw);
+    if(raw) s = JSON.parse(raw);
   }catch(e){}
-  return {stars:0, bestStreak:0};
+  return Object.assign({
+    stars:0, bestStreak:0,
+    combo:0, bestCombo:0,
+    dailyStreak:0, lastCheckinDate:null, starsToday:0, starsTodayDate:null
+  }, s);
 }
 function saveSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} }
 let save = loadSave();
+
+const MODE_KEY = 'pipiForest_mode_v1';
+let currentMode = null;
+try{ currentMode = localStorage.getItem(MODE_KEY); }catch(e){}
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function dateStrOffset(dateString, days){
+  const [y,m,d] = dateString.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  dt.setDate(dt.getDate()+days);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+function openModePicker(){
+  document.getElementById('modeCancelBtn').hidden = !currentMode;
+  document.getElementById('modeOverlay').hidden = false;
+}
+function closeModePicker(){
+  if(!currentMode) return;
+  document.getElementById('modeOverlay').hidden = true;
+}
+function chooseMode(mode){
+  currentMode = mode;
+  try{ localStorage.setItem(MODE_KEY, mode); }catch(e){}
+  document.getElementById('modeOverlay').hidden = true;
+  refreshStatsBar();
+  renderDailyBanner();
+}
+function updateCombo(ok){
+  if(currentMode !== 'vicky') return;
+  if(ok){ save.combo++; if(save.combo > save.bestCombo) save.bestCombo = save.combo; }
+  else { save.combo = 0; }
+  saveSave();
+  refreshStatsBar();
+}
+function recordWordAnswer(en, ok){
+  if(currentMode !== 'vicky') return;
+  bumpWordStat(en, ok);
+  updateCombo(ok);
+}
 
 function loadLessonOverrides(){
   try{
@@ -910,13 +1008,41 @@ function initSelection(){
 
 function refreshStatsBar(){
   document.getElementById('statStars').textContent = save.stars;
-  document.getElementById('statStreak').textContent = save.bestStreak;
+  document.getElementById('statCombo').textContent = save.bestCombo;
+  document.getElementById('statDaily').textContent = save.dailyStreak;
   const badgeEl = document.getElementById('statBadge');
   let label = '🍩 甜甜圈新手';
   if(save.stars >= 100) label = '🍩 英語甜點大師';
   else if(save.stars >= 40) label = '🍩 甜點主廚';
   else if(save.stars >= 10) label = '🍩 甜點學徒';
   badgeEl.textContent = label;
+  const modePill = document.getElementById('modePill');
+  if(currentMode === 'parent'){
+    modePill.textContent = '🔧 家長模式';
+    modePill.classList.add('parent');
+  } else {
+    modePill.textContent = '🐱 蔚瑄模式';
+    modePill.classList.remove('parent');
+  }
+}
+function renderDailyBanner(){
+  const el = document.getElementById('dailyBanner');
+  if(!el) return;
+  if(currentMode === 'parent'){
+    el.className = 'parent-banner';
+    el.textContent = '🔧 家長測試模式:目前操作不會計入蔚瑄的星星、連擊或打卡天數';
+    return;
+  }
+  el.className = 'daily-banner';
+  const today = todayStr();
+  const doneToday = save.lastCheckinDate === today;
+  const todayCount = (save.starsTodayDate === today) ? save.starsToday : 0;
+  if(doneToday){
+    el.textContent = '✅ 今天已經打卡了!連續 ' + save.dailyStreak + ' 天,明天再拿5顆星維持紀錄吧!';
+  } else {
+    const remain = Math.max(0, 5 - todayCount);
+    el.textContent = '📅 今天再拿 ' + remain + ' 顆星就能完成每日打卡(目前連續 ' + save.dailyStreak + ' 天)';
+  }
 }
 
 const GREETINGS = [
@@ -983,9 +1109,19 @@ function sparkleBurst(x, y){
   }
 }
 function addStars(n){
+  if(currentMode !== 'vicky') return;
   save.stars += n;
+  const today = todayStr();
+  if(save.starsTodayDate !== today){ save.starsTodayDate = today; save.starsToday = 0; }
+  save.starsToday += n;
+  if(save.starsToday >= 5 && save.lastCheckinDate !== today){
+    const yesterday = dateStrOffset(today, -1);
+    save.dailyStreak = (save.lastCheckinDate === yesterday) ? save.dailyStreak + 1 : 1;
+    save.lastCheckinDate = today;
+  }
   saveSave();
   refreshStatsBar();
+  renderDailyBanner();
 }
 
 function renderChips(container, items, activeKey, onPick){
@@ -1110,6 +1246,7 @@ function goHome(){
   showScreen('home');
   document.getElementById('homeGreeting').textContent = GREETINGS[Math.floor(Math.random()*GREETINGS.length)];
   renderLessonGrid();
+  renderDailyBanner();
 }
 function showScreen(name){
   ['home','flash','quiz','spell','grammar'].forEach(s=>{
@@ -1359,11 +1496,12 @@ function answerQuiz(chosenIdx, correctIdx, ev){
   const ok = chosenIdx === correctIdx;
   quizResults[quizIdx] = ok;
   const item = quizItems[quizIdx];
-  bumpWordStat(item.en, ok);
+  recordWordAnswer(item.en, ok);
   if(!ok) quizWrongItems.push(item);
   const fb = document.getElementById('quizFeedback');
   fb.classList.add('show', ok ? 'ok' : 'bad');
   fb.textContent = ok ? '答對了!' + item.en + ' 就是「'+item.zh+'」。' : '再想想~ ' + item.en + ' 的意思是「'+item.zh+'」喔。';
+  if(ok && currentMode==='vicky' && save.combo>=2) fb.textContent += ' 🔥 連續答對 '+save.combo+' 題!';
   playTone(ok);
   if(ok){
     quizScore++;
@@ -1375,7 +1513,6 @@ function answerQuiz(chosenIdx, correctIdx, ev){
 }
 function finishQuiz(){
   addStars(quizScore);
-  if(quizScore > save.bestStreak){ save.bestStreak = quizScore; saveSave(); refreshStatsBar(); }
   const wrongCount = quizWrongItems.length;
   const wrongSnapshot = quizWrongItems.slice();
   showResult({
@@ -1561,9 +1698,11 @@ function checkSpell(){
   spellResults[spellIdx] = ok;
   document.getElementById('spellCheckBtn').disabled = true;
   drawSpellUI();
+  recordWordAnswer(item.en, ok);
   const fb = document.getElementById('spellFeedback');
   fb.classList.add('show', ok ? 'ok' : 'bad');
   fb.textContent = ok ? '拼對了!' + item.en + '(' + item.zh + ')' : '正確拼法是:' + item.en + '(' + item.zh + ')';
+  if(ok && currentMode==='vicky' && save.combo>=2) fb.textContent += ' 🔥 連續答對 '+save.combo+' 題!';
   playTone(ok);
   if(ok){
     spellScore++;
@@ -1576,7 +1715,6 @@ function checkSpell(){
 }
 function finishSpell(){
   addStars(spellScore);
-  if(spellScore > save.bestStreak){ save.bestStreak = spellScore; saveSave(); refreshStatsBar(); }
   showResult({
     emoji: spellScore===spellItems.length ? '🏆' : '🌟',
     title: spellScore===spellItems.length ? '全部拼對!你是拼字高手!' : '完成拼字挑戰!',
@@ -1657,9 +1795,11 @@ function answerGrammar(chosenIdx, ev){
   });
   const ok = chosenIdx === item.a;
   grammarResults[grammarIdx] = ok;
+  updateCombo(ok);
   const fb = document.getElementById('grammarFeedback');
   fb.classList.add('show', ok ? 'ok' : 'bad');
   fb.textContent = (ok ? '答對了! ' : '再想想~ ') + item.e;
+  if(ok && currentMode==='vicky' && save.combo>=2) fb.textContent += ' 🔥 連續答對 '+save.combo+' 題!';
   playTone(ok);
   if(ok){
     grammarScore++;
@@ -1671,7 +1811,6 @@ function answerGrammar(chosenIdx, ev){
 }
 function finishGrammar(){
   addStars(grammarScore);
-  if(grammarScore > save.bestStreak){ save.bestStreak = grammarScore; saveSave(); refreshStatsBar(); }
   showResult({
     emoji: grammarScore===grammarItems.length ? '🏆' : '🌟',
     title: grammarScore===grammarItems.length ? '文法全對!好厲害!' : '完成文法練習!',
@@ -1685,8 +1824,10 @@ function finishGrammar(){
 refreshStatsBar();
 initSelection();
 renderLessonGrid();
+renderDailyBanner();
 setupFlashSwipe();
 showScreen('home');
+if(!currentMode) openModePicker();
 </script>
 </body>
 </html>
