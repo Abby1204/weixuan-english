@@ -676,7 +676,7 @@
     <h2 style="text-align:center;margin-bottom:16px;">🧩 文法練習設定</h2>
     <label class="field-label">選擇範圍</label>
     <div class="chiprow" id="grammarRangeRow"></div>
-    <label class="field-label">選擇文法類型(可不選,預設全部類型)</label>
+    <label class="field-label">選擇文法類型(可複選,不選則為全部類型)</label>
     <div class="chiprow" id="grammarTypeRow"></div>
     <p id="grammarModeWarning" style="display:none;color:var(--coral-deep);font-size:12.5px;margin:-4px 0 8px;">⚠️ 這個組合還沒有題目,換一個範圍或類型試試</p>
     <div class="result-actions">
@@ -2216,45 +2216,67 @@ function finishSpell(){
 }
 
 /* ================= GRAMMAR ================= */
-let pendingGrammarRange='all', pendingGrammarType='all';
-let grammarRange='all', grammarType='all', grammarItems=[], grammarIdx=0, grammarResults=[], grammarScore=0;
-function filterGrammarPool(rangeKey, typeKey){
+let pendingGrammarRange='all', pendingGrammarTypes=new Set();
+let grammarRange='all', grammarTypes=new Set(), grammarItems=[], grammarIdx=0, grammarResults=[], grammarScore=0;
+function filterGrammarPool(rangeKey, typeKeys){
   let pool = GRAMMAR;
   if(rangeKey && rangeKey !== 'all') pool = pool.filter(g=>g.range===rangeKey);
-  if(typeKey && typeKey !== 'all') pool = pool.filter(g=>g.type===typeKey);
+  if(typeKeys && typeKeys.size > 0) pool = pool.filter(g=>typeKeys.has(g.type));
   return pool;
 }
 function openGrammarMode(){
   pendingGrammarRange = 'all';
-  pendingGrammarType = 'all';
+  pendingGrammarTypes = new Set();
   document.getElementById('grammarModeWarning').style.display = 'none';
   renderGrammarModeChips();
   document.getElementById('grammarModeOverlay').hidden = false;
 }
 function renderGrammarModeChips(){
   renderChips(document.getElementById('grammarRangeRow'), GRAMMAR_RANGES, pendingGrammarRange, (k)=>{ pendingGrammarRange = k; renderGrammarModeChips(); });
-  renderChips(document.getElementById('grammarTypeRow'), GRAMMAR_TYPES, pendingGrammarType, (k)=>{ pendingGrammarType = k; renderGrammarModeChips(); });
+  renderGrammarTypeChips();
+}
+function renderGrammarTypeChips(){
+  const container = document.getElementById('grammarTypeRow');
+  container.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'chip' + (pendingGrammarTypes.size===0 ? ' active' : '');
+  allBtn.textContent = '🌈 全部混合';
+  allBtn.onclick = () => { pendingGrammarTypes.clear(); renderGrammarTypeChips(); };
+  container.appendChild(allBtn);
+  GRAMMAR_TYPES.forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (pendingGrammarTypes.has(t.key) ? ' active' : '');
+    b.textContent = t.icon + ' ' + t.label;
+    b.onclick = () => {
+      if(pendingGrammarTypes.has(t.key)) pendingGrammarTypes.delete(t.key);
+      else pendingGrammarTypes.add(t.key);
+      renderGrammarTypeChips();
+    };
+    container.appendChild(b);
+  });
 }
 function closeGrammarMode(){ document.getElementById('grammarModeOverlay').hidden = true; }
 function confirmGrammarStart(){
-  if(filterGrammarPool(pendingGrammarRange, pendingGrammarType).length === 0){
+  if(filterGrammarPool(pendingGrammarRange, pendingGrammarTypes).length === 0){
     document.getElementById('grammarModeWarning').style.display = 'block';
     return;
   }
   closeGrammarMode();
-  startGrammar(pendingGrammarRange, pendingGrammarType);
+  startGrammar(pendingGrammarRange, new Set(pendingGrammarTypes));
 }
 function grammarRangeLabel(){
   const rangeMeta = GRAMMAR_RANGES.find(r=>r.key===grammarRange);
-  const typeMeta = GRAMMAR_TYPES.find(t=>t.key===grammarType);
   let label = '🧩 範圍:' + (rangeMeta ? rangeMeta.label : '全部混合');
-  if(typeMeta) label += ' · ' + typeMeta.icon + ' ' + typeMeta.label;
+  if(grammarTypes.size > 0){
+    const labels = GRAMMAR_TYPES.filter(t=>grammarTypes.has(t.key)).map(t=>t.icon+t.label);
+    label += ' · ' + labels.join('、');
+  }
   return label;
 }
-function startGrammar(rangeKey, typeKey){
+function startGrammar(rangeKey, typeKeys){
   grammarRange = rangeKey || 'all';
-  grammarType = typeKey || 'all';
-  const pool = filterGrammarPool(grammarRange, grammarType);
+  grammarTypes = typeKeys || new Set();
+  const pool = filterGrammarPool(grammarRange, grammarTypes);
   grammarItems = pickN(pool, 8);
   grammarIdx = 0; grammarScore = 0;
   grammarResults = new Array(grammarItems.length).fill(null);
@@ -2348,7 +2370,7 @@ function finishGrammar(){
     title: grammarScore===grammarItems.length ? '文法全對!好厲害!' : '完成文法練習!',
     scoreText: grammarScore + '/' + grammarItems.length,
     starsEarned: grammarScore,
-    onRetry: ()=>startGrammar(grammarRange, grammarType)
+    onRetry: ()=>startGrammar(grammarRange, grammarTypes)
   });
 }
 
