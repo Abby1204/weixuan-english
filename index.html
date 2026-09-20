@@ -314,11 +314,15 @@
 
   /* ---------- Flashcards ---------- */
   .card-stage{ display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .card-row{ display:flex; align-items:center; justify-content:center; gap:12px; width:100%; }
+  .side-arrow{ flex:none; }
   .flip-card{
-    width:min(340px,90vw); height:220px;
+    width:100%; max-width:min(595px,90vw); height:385px;
     perspective:1200px;
     cursor:pointer;
     touch-action:pan-y;
+    flex:1 1 auto;
+    min-width:0;
   }
   .swipe-hint{ font-size:11.5px; color:var(--ink-soft); }
   .flip-inner{
@@ -332,7 +336,7 @@
     border-radius:24px;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     backface-visibility:hidden;
-    padding:18px;
+    padding:24px;
     text-align:center;
     box-shadow:0 6px 0 var(--shadow);
     border:2px solid var(--line);
@@ -341,14 +345,14 @@
   .face.back{ background:var(--pink-light); transform:rotateY(180deg); }
   .lesson-tag{
     display:inline-block; background:var(--cream-3); border-radius:999px;
-    padding:4px 12px; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:14px;
+    padding:6px 16px; font-size:14px; font-weight:700; color:var(--ink-soft); margin-bottom:18px;
   }
   .face.back .lesson-tag{ background:rgba(255,255,255,0.5); }
-  .face .word{ font-family:"Baloo 2"; font-size:28px; font-weight:800; color:var(--pink-deep); word-break:break-word; }
-  .face .zh{ font-size:21px; font-weight:700; word-break:break-word; }
-  .face .hint{ position:absolute; bottom:10px; font-size:11px; color:var(--ink-soft); }
+  .face .word{ font-family:"Baloo 2"; font-size:48px; font-weight:800; color:var(--pink-deep); word-break:break-word; }
+  .face .zh{ font-size:36px; font-weight:700; word-break:break-word; }
+  .face .hint{ position:absolute; bottom:14px; font-size:13px; color:var(--ink-soft); }
 
-  .card-controls{ display:flex; align-items:center; gap:10px; }
+  .card-controls{ display:flex; align-items:center; gap:32px; }
   .round-btn{
     width:44px;height:44px;border-radius:50%;
     border:2px solid var(--line);
@@ -589,26 +593,27 @@
     <button class="backbtn" onclick="goHome()">← 回首頁</button>
     <div class="range-info" id="flashRangeInfo"></div>
     <div class="card-stage">
-      <div class="flip-card" id="flashCard" onclick="flipCard()">
-        <div class="flip-inner" id="flashInner">
-          <div class="face front">
-            <div class="lesson-tag" id="flashTagFront">Lesson 1</div>
-            <div class="word" id="flashWord">lake</div>
-            <span class="hint">點卡片看中文意思</span>
-          </div>
-          <div class="face back">
-            <div class="lesson-tag" id="flashTagBack">Lesson 1</div>
-            <div class="zh" id="flashZh">湖</div>
-            <span class="hint">再點一次翻回正面</span>
+      <div class="card-row">
+        <button class="round-btn side-arrow" onclick="flashStep(-1)">⬅️</button>
+        <div class="flip-card" id="flashCard" onclick="flipCard()">
+          <div class="flip-inner" id="flashInner">
+            <div class="face front">
+              <div class="lesson-tag" id="flashTagFront">Lesson 1</div>
+              <div class="word" id="flashWord">lake</div>
+              <span class="hint">點卡片看中文意思</span>
+            </div>
+            <div class="face back">
+              <div class="lesson-tag" id="flashTagBack">Lesson 1</div>
+              <div class="zh" id="flashZh">湖</div>
+              <span class="hint">再點一次翻回正面</span>
+            </div>
           </div>
         </div>
+        <button class="round-btn side-arrow" onclick="flashStep(1)">➡️</button>
       </div>
       <div class="card-controls">
-        <button class="round-btn" onclick="event.stopPropagation();flashStep(-1)">⬅️</button>
-        <button class="round-btn primary" onclick="event.stopPropagation();speak(flashDeck[flashIdx].en)" title="正常速度">🔊</button>
-        <button class="round-btn" onclick="event.stopPropagation();speak(flashDeck[flashIdx].en, 0.35)" title="慢速播放">🐢</button>
-        <button class="round-btn" onclick="event.stopPropagation();shuffleFlash()">🔀</button>
-        <button class="round-btn" onclick="event.stopPropagation();flashStep(1)">➡️</button>
+        <button class="round-btn primary" onclick="speak(flashCurrent.en)" title="正常速度">🔊</button>
+        <button class="round-btn" onclick="speak(flashCurrent.en, FLASH_SLOW_RATE)" title="慢速播放">🐢</button>
       </div>
       <div class="score-live" id="flashCounter">1 / 8</div>
       <div class="swipe-hint">👈 左右滑動也能換卡片 👉</div>
@@ -1737,31 +1742,52 @@ function closeResult(){
 }
 
 /* ================= FLASHCARDS ================= */
-let flashDeck = [], flashIdx = 0;
+const FLASH_SLOW_RATE = 0.25;
+let flashPool = [], flashCurrent = null, flashHistory = [], flashViewCount = 0;
 let flashTouchStartX = 0, flashTouchStartY = 0, flashSwiped = false;
+let flashAutoSpeakTimer = null;
+function randomFlashCard(excludeItem){
+  if(flashPool.length === 0) return null;
+  if(flashPool.length === 1) return flashPool[0];
+  let pick;
+  do{ pick = flashPool[Math.floor(Math.random()*flashPool.length)]; }
+  while(excludeItem && pick.en === excludeItem.en);
+  return pick;
+}
 function startFlash(){
-  flashDeck = shuffle(getPool());
-  flashIdx = 0;
+  flashPool = getPool();
+  flashHistory = [];
+  flashViewCount = 0;
+  flashCurrent = randomFlashCard();
   document.getElementById('flashRangeInfo').textContent = rangeLabel();
   showScreen('flash');
   renderFlash();
 }
-function shuffleFlash(){ flashDeck = shuffle(flashDeck); flashIdx = 0; renderFlash(); }
 function renderFlash(){
-  const item = flashDeck[flashIdx];
+  const item = flashCurrent;
+  flashViewCount++;
   document.getElementById('flashTagFront').textContent = 'Lesson ' + item.lesson;
   document.getElementById('flashTagBack').textContent = 'Lesson ' + item.lesson;
   document.getElementById('flashWord').textContent = item.en;
   document.getElementById('flashZh').textContent = item.zh;
-  document.getElementById('flashCounter').textContent = (flashIdx+1) + ' / ' + flashDeck.length;
+  document.getElementById('flashCounter').textContent = '已複習 ' + flashViewCount + ' 張';
   document.getElementById('flashCard').classList.remove('flipped');
+  clearTimeout(flashAutoSpeakTimer);
+  speak(item.en);
+  flashAutoSpeakTimer = setTimeout(()=>{ speak(item.en, FLASH_SLOW_RATE); }, 1500);
 }
 function flipCard(){
   if(flashSwiped){ flashSwiped = false; return; }
   document.getElementById('flashCard').classList.toggle('flipped');
 }
 function flashStep(dir){
-  flashIdx = (flashIdx + dir + flashDeck.length) % flashDeck.length;
+  if(dir > 0){
+    flashHistory.push(flashCurrent);
+    flashCurrent = randomFlashCard(flashCurrent);
+  } else {
+    if(flashHistory.length === 0) return;
+    flashCurrent = flashHistory.pop();
+  }
   renderFlash();
 }
 function setupFlashSwipe(){
