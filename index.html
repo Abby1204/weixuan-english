@@ -812,9 +812,13 @@
       <button class="chip" data-diff="basic" onclick="pickSpellDiff('basic')">🟢 基礎(重組字母)</button>
       <button class="chip" data-diff="inter" onclick="pickSpellDiff('inter')">🟡 進階(提示格數)</button>
       <button class="chip" data-diff="exam" onclick="pickSpellDiff('exam')">🔴 正式考試(純聽寫)</button>
+      <button class="chip" data-diff="review" onclick="pickSpellDiff('review')">⚠️ 常錯題複習(純聽寫)</button>
     </div>
-    <label class="field-label">選擇題數</label>
-    <select class="field-select" id="spellCountSelect"></select>
+    <p id="spellReviewInfo" style="display:none;font-size:12.5px;color:var(--ink-soft);margin:-4px 0 10px;"></p>
+    <div id="spellCountRow">
+      <label class="field-label">選擇題數</label>
+      <select class="field-select" id="spellCountSelect"></select>
+    </div>
     <div class="result-actions">
       <button class="ghost-btn" onclick="closeSpellMode()">取消</button>
       <button class="primary-btn" onclick="confirmSpellStart()">開始練習</button>
@@ -1597,9 +1601,9 @@ function updateCombo(ok){
   saveSave();
   refreshStatsBar();
 }
-function recordWordAnswer(en, ok){
+function recordWordAnswer(en, ok, canDecay){
   if(currentMode !== 'vicky') return;
-  bumpWordStat(en, ok);
+  bumpWordStat(en, ok, canDecay);
   updateCombo(ok);
 }
 
@@ -1623,11 +1627,12 @@ function loadWordStats(){
 }
 function persistWordStats(){ try{ localStorage.setItem(STATS_KEY, JSON.stringify(wordStats)); }catch(e){} schedulePush(); }
 let wordStats = loadWordStats();
-function bumpWordStat(en, correct){
+function bumpWordStat(en, correct, canDecay){
   const key = en.toLowerCase();
   const s = wordStats[key] || {wrong:0, seen:0};
   s.seen++;
   if(!correct) s.wrong++;
+  else if(canDecay && s.wrong > 0) s.wrong--;
   wordStats[key] = s;
   persistWordStats();
 }
@@ -1987,9 +1992,23 @@ function pickSpellDiff(d){
   document.querySelectorAll('#spellDiffRow .chip').forEach(b=>{
     b.classList.toggle('active', b.dataset.diff === d);
   });
+  const countRow = document.getElementById('spellCountRow');
+  const infoEl = document.getElementById('spellReviewInfo');
+  if(d === 'review'){
+    countRow.style.display = 'none';
+    const n = getWrongWordPool().length;
+    infoEl.style.display = 'block';
+    infoEl.textContent = n > 0 ? ('目前有 ' + n + ' 個常錯字,將一次全部考完。') : '目前沒有常錯字,太棒了!先練習其他難度吧。';
+  } else {
+    countRow.style.display = '';
+    infoEl.style.display = 'none';
+  }
 }
 function closeSpellMode(){ document.getElementById('spellModeOverlay').hidden = true; }
 function confirmSpellStart(){
+  if(pendingSpellDiff === 'review' && getWrongWordPool().length === 0){
+    return;
+  }
   const countVal = document.getElementById('spellCountSelect').value;
   closeSpellMode();
   startSpell(pendingSpellDiff, countVal);
@@ -2464,20 +2483,36 @@ const SPELL_DIFF_META = {
   basic: {label:'🟢 基礎(重組字母)'},
   inter: {label:'🟡 進階(聽寫+提示格數)'},
   exam: {label:'🔴 正式考試(純聽寫)'},
+  review: {label:'⚠️ 常錯題複習(純聽寫)'},
 };
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('');
 let spellDifficulty = 'basic';
 let spellRoundCount = 10;
 let spellItems = [], spellIdx = 0, spellResults = [], spellScore = 0;
 let spellAnswer=[], spellTiles=[], spellDone=false;
-function startSpell(difficulty, countVal){
-  spellDifficulty = difficulty || 'basic';
+function getWrongWordPool(){
   let pool = getPool().filter(w => !w.en.includes(' '));
   if(pool.length === 0) pool = getPool();
-  const val = countVal === undefined ? spellRoundCount : countVal;
-  const n = (val === 'all') ? pool.length : Math.min(parseInt(val,10) || pool.length, pool.length);
-  spellRoundCount = (val === 'all') ? 'all' : n;
-  spellItems = pickN(pool, n);
+  return pool.filter(w => {
+    const s = wordStats[w.en.toLowerCase()];
+    return s && s.wrong > 0;
+  });
+}
+function startSpell(difficulty, countVal){
+  spellDifficulty = difficulty || 'basic';
+  let spellItemsLocal;
+  if(spellDifficulty === 'review'){
+    spellItemsLocal = shuffle(getWrongWordPool());
+    spellRoundCount = 'all';
+  } else {
+    let pool = getPool().filter(w => !w.en.includes(' '));
+    if(pool.length === 0) pool = getPool();
+    const val = countVal === undefined ? spellRoundCount : countVal;
+    const n = (val === 'all') ? pool.length : Math.min(parseInt(val,10) || pool.length, pool.length);
+    spellRoundCount = (val === 'all') ? 'all' : n;
+    spellItemsLocal = pickN(pool, n);
+  }
+  spellItems = spellItemsLocal;
   spellIdx = 0; spellScore = 0;
   spellResults = new Array(spellItems.length).fill(null);
   document.getElementById('spellTotal').textContent = spellItems.length;
@@ -2567,7 +2602,7 @@ function drawSpellUI(){
   const item = spellItems[spellIdx];
   const slotRow = document.getElementById('spellSlots');
   slotRow.innerHTML = '';
-  const slotCount = spellDifficulty === 'exam' ? Math.max(spellAnswer.length, 1) : item.en.length;
+  const slotCount = (spellDifficulty === 'exam' || spellDifficulty === 'review') ? Math.max(spellAnswer.length, 1) : item.en.length;
   for(let i=0;i<slotCount;i++){
     const filled = spellAnswer[i];
     const s = document.createElement('div');
@@ -2624,7 +2659,7 @@ function undoTile(){
 }
 function checkSpell(){
   const item = spellItems[spellIdx];
-  const lengthOk = spellDifficulty === 'exam' ? spellAnswer.length > 0 : spellAnswer.length === item.en.length;
+  const lengthOk = (spellDifficulty === 'exam' || spellDifficulty === 'review') ? spellAnswer.length > 0 : spellAnswer.length === item.en.length;
   if(!lengthOk){
     const card = document.getElementById('spellCard');
     card.classList.add('shake');
@@ -2637,7 +2672,7 @@ function checkSpell(){
   spellResults[spellIdx] = ok;
   document.getElementById('spellCheckBtn').disabled = true;
   drawSpellUI();
-  recordWordAnswer(item.en, ok);
+  recordWordAnswer(item.en, ok, true);
   const fb = document.getElementById('spellFeedback');
   fb.classList.add('show', ok ? 'ok' : 'bad');
   fb.textContent = ok ? '拼對了!' + item.en + '(' + item.zh + ')' : '正確拼法是:' + item.en + '(' + item.zh + ')';
