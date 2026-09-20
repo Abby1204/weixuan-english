@@ -262,6 +262,7 @@
   .node.n2 .icon{ background:color-mix(in srgb, var(--sun) 35%, var(--cream)); }
   .node.n3 .icon{ background:color-mix(in srgb, var(--coral) 28%, var(--cream)); }
   .node.n4 .icon{ background:color-mix(in srgb, var(--lavender) 28%, var(--cream)); }
+  .node.n5 .icon{ background:color-mix(in srgb, var(--pink) 24%, var(--cream)); }
   .node h3{ font-size:17px; font-weight:800; color:var(--pink-deep); }
   .node p{ margin:4px 0 0; font-size:12.5px; color:var(--ink-soft); line-height:1.5; }
 
@@ -491,6 +492,34 @@
   }
   .tier-row.done{ background:var(--ok-light); color:var(--ok-deep); }
 
+  /* ---------- Reference (browse-only) ---------- */
+  .ref-lesson-block{ margin-bottom:22px; }
+  .ref-lesson-title{
+    font-family:"Baloo 2"; font-size:16px; font-weight:800; color:var(--pink-deep);
+    margin-bottom:10px; padding-bottom:4px; border-bottom:2px dashed var(--line);
+  }
+  .ref-word-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:8px; }
+  .ref-word-row, .ref-pair-row{
+    display:flex; align-items:center; gap:8px;
+    background:var(--cream-2); border:1px solid var(--line); border-radius:12px;
+    padding:8px 12px; font-size:13.5px;
+  }
+  .ref-en{ font-family:"Baloo 2"; font-weight:700; color:var(--ink); }
+  .ref-zh{ color:var(--ink-soft); margin-left:auto; }
+  .ref-group-block{ margin-bottom:20px; }
+  .ref-group-title{
+    display:inline-block; font-family:"Baloo 2"; font-weight:800; font-size:14px;
+    color:#fff; border-radius:999px; padding:6px 16px; margin-bottom:10px;
+  }
+  .ref-pair-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:8px; }
+  .ref-pair-row{ font-family:"Baloo 2"; font-weight:700; justify-content:center; }
+  .ref-pair-row .arrow{ color:var(--pink); }
+  .ref-tip{
+    margin-top:12px; background:var(--pink-light); border:1px dashed var(--pink);
+    border-radius:14px; padding:14px 18px; font-size:13.5px; color:var(--ink); line-height:1.7;
+  }
+  .ref-deck-title{ text-align:center; color:var(--pink-deep); font-size:19px; margin-bottom:18px; }
+
   .sparkle{
     position:fixed; pointer-events:none; font-size:20px; z-index:60;
     animation:sparkle-float 1s ease-out forwards;
@@ -581,6 +610,11 @@
         <h3>文法練習</h3>
         <p>Grammar · 依期中/期末範圍出題,真實考題</p>
       </button>
+      <button class="node n5" onclick="openActivity('reference')">
+        <div class="icon">📋</div>
+        <h3>補充資料</h3>
+        <p>Reference · 完整單字總表、老師的補充講義,純查詢不計分</p>
+      </button>
     </div>
     <div class="badges-row">
       <span id="badgesRowText"></span>
@@ -651,6 +685,13 @@
       <div class="score-live"><span id="grammarScore">0</span> / <span id="grammarTotal">8</span> 答對</div>
     </div>
     <div class="qcard" id="grammarCard"></div>
+  </section>
+
+  <!-- REFERENCE -->
+  <section class="screen" id="screen-reference" hidden>
+    <button class="backbtn" onclick="goHome()">← 回首頁</button>
+    <div class="chiprow" id="referenceDeckChips"></div>
+    <div id="referenceContent"></div>
   </section>
 
 </div>
@@ -1047,6 +1088,25 @@ const GRAMMAR = [
   {"range":"midterm","type":"be_past","s":"My mom and dad ___ generous when I was little.","o":["is","was","were","be"],"a":2,"e":"複數主詞 mom and dad 要用「were」。"},
   {"range":"midterm","type":"adjective","s":"It is important to be ___. You should always try to help others.","o":["worried","generous","shy","relaxed"],"a":1,"e":"樂於幫助別人是「慷慨的」→ generous。"},
   {"range":"midterm","type":"adjective","s":"My sister was very nervous, but everyone else was ___.","o":["worried","relaxed","shy","cheerful"],"a":1,"e":"跟緊張相反的感覺是「放鬆的」→ relaxed。"}
+];
+
+/* ================= REFERENCE DECKS (browse-only, teacher's supplementary handouts) ================= */
+const REFERENCE_DECKS = [
+  {
+    id: 'irregular_verbs_helper',
+    icon: '🔤',
+    title: 'Irregular Verbs 過去式小幫手',
+    colorTokens: ['ok','sky','sun','pink','coral','lavender'],
+    groups: [
+      { name:'Everyday Actions', pairs:[['keep','kept'],['buy','bought'],['draw','drew'],['fall','fell'],['forget','forgot'],['hit','hit']] },
+      { name:'People Around Us', pairs:[['stand','stood'],['teach','taught'],['throw','threw'],['cut','cut'],['feel','felt'],['hear','heard']] },
+      { name:'Learning & Thinking', pairs:[['know','knew'],['read','read(唸法不同,像"red")'],['say','said'],['sleep','slept'],['fly','flew'],['get','got']] },
+      { name:'Daily Activities', pairs:[['swim','swam'],['sing','sang'],['sit','sat'],['speak','spoke'],['bring','brought'],['write','wrote']] },
+      { name:'Helping Verbs & More', pairs:[['do/does','did'],['put','put'],['have/has','had'],['think','thought'],['come','came'],['meet','met']] },
+      { name:'Verbs in Action', pairs:[['find','found'],['wake','woke'],['go','went'],['eat','ate'],['wear','wore'],['see','saw'],['build','built'],['catch','caught'],['give','gave'],['leave','left'],['make','made'],['ride','rode'],['run','ran'],['feed','fed'],['take','took'],['tell','told'],['hide','hid']] },
+    ],
+    tip: { text:"Did / didn't + 原形動詞", example:'Did you drink milk? Yes, I drank milk.' }
+  },
 ];
 
 /* ================= REWARD CONFIG (editable via Parent-mode admin panel) ================= */
@@ -1719,12 +1779,13 @@ function goHome(){
   pullCloudData();
 }
 function showScreen(name){
-  ['home','flash','quiz','spell','grammar'].forEach(s=>{
+  ['home','flash','quiz','spell','grammar','reference'].forEach(s=>{
     document.getElementById('screen-'+s).hidden = (s !== name);
   });
 }
 function openActivity(name){
   if(name === 'grammar'){ openGrammarMode(); return; }
+  if(name === 'reference'){ openReference(); return; }
   if(getPool().length === 0){
     document.getElementById('selectionSummary').textContent = '⚠️ 請先在上面選擇至少一課,才能開始複習喔!';
     document.getElementById('selectionSummary').style.color = 'var(--coral-deep)';
@@ -2372,6 +2433,118 @@ function finishGrammar(){
     starsEarned: grammarScore,
     onRetry: ()=>startGrammar(grammarRange, grammarTypes)
   });
+}
+
+/* ================= REFERENCE (browse-only) ================= */
+let referenceActiveDeck = 'vocab_all';
+function openReference(){
+  showScreen('reference');
+  renderReferenceDeckChips();
+  showReferenceDeck(referenceActiveDeck);
+}
+function renderReferenceDeckChips(){
+  const container = document.getElementById('referenceDeckChips');
+  container.innerHTML = '';
+  const options = [{key:'vocab_all', label:'📖 課程單字總表'}].concat(
+    REFERENCE_DECKS.map(d=>({key:d.id, label:d.icon+' '+d.title}))
+  );
+  options.forEach(opt=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (referenceActiveDeck===opt.key ? ' active' : '');
+    b.textContent = opt.label;
+    b.onclick = () => showReferenceDeck(opt.key);
+    container.appendChild(b);
+  });
+}
+function showReferenceDeck(key){
+  referenceActiveDeck = key;
+  renderReferenceDeckChips();
+  const content = document.getElementById('referenceContent');
+  content.innerHTML = '';
+  if(key === 'vocab_all'){
+    renderVocabReference(content);
+  } else {
+    const deck = REFERENCE_DECKS.find(d=>d.id===key);
+    if(deck) renderDeckReference(content, deck);
+  }
+}
+function renderVocabReference(container){
+  let any = false;
+  for(let n=1; n<=TOTAL_LESSONS; n++){
+    const words = getLessonWords(n);
+    if(words.length === 0) continue;
+    any = true;
+    const block = document.createElement('div');
+    block.className = 'ref-lesson-block';
+    const h = document.createElement('div');
+    h.className = 'ref-lesson-title';
+    h.textContent = 'Lesson ' + n;
+    block.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'ref-word-grid';
+    words.forEach(w=>{
+      const row = document.createElement('div');
+      row.className = 'ref-word-row';
+      const sp = document.createElement('button');
+      sp.className = 'speaker';
+      sp.style.width = '30px'; sp.style.height = '30px'; sp.style.fontSize = '13px'; sp.style.flex = 'none';
+      sp.textContent = '🔊';
+      sp.onclick = () => speak(w.en);
+      row.appendChild(sp);
+      const en = document.createElement('span');
+      en.className = 'ref-en';
+      en.textContent = w.en;
+      row.appendChild(en);
+      const zh = document.createElement('span');
+      zh.className = 'ref-zh';
+      zh.textContent = w.zh;
+      row.appendChild(zh);
+      grid.appendChild(row);
+    });
+    block.appendChild(grid);
+    container.appendChild(block);
+  }
+  if(!any){
+    container.innerHTML = '<p style="text-align:center;color:var(--ink-soft);">目前還沒有任何課程單字資料。</p>';
+  }
+}
+function renderDeckReference(container, deck){
+  const h = document.createElement('h2');
+  h.className = 'ref-deck-title';
+  h.textContent = deck.title;
+  container.appendChild(h);
+  deck.groups.forEach((g,i)=>{
+    const token = (deck.colorTokens && deck.colorTokens[i % deck.colorTokens.length]) || 'pink';
+    const block = document.createElement('div');
+    block.className = 'ref-group-block';
+    const title = document.createElement('div');
+    title.className = 'ref-group-title';
+    title.style.background = 'var(--' + token + ')';
+    title.textContent = g.name;
+    block.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'ref-pair-grid';
+    g.pairs.forEach(p=>{
+      const row = document.createElement('div');
+      row.className = 'ref-pair-row';
+      row.innerHTML = '<span>'+p[0]+'</span><span class="arrow">→</span><span>'+p[1]+'</span>';
+      const sp = document.createElement('button');
+      sp.className = 'speaker';
+      sp.style.width = '30px'; sp.style.height = '30px'; sp.style.fontSize = '13px'; sp.style.flex = 'none';
+      sp.textContent = '🔊';
+      sp.onclick = () => speak(p[0]);
+      row.appendChild(sp);
+      grid.appendChild(row);
+    });
+    block.appendChild(grid);
+    container.appendChild(block);
+  });
+  if(deck.tip){
+    const tip = document.createElement('div');
+    tip.className = 'ref-tip';
+    tip.innerHTML = '⭐ <b>' + deck.tip.text + '</b><br>' + deck.tip.example;
+    container.appendChild(tip);
+  }
 }
 
 /* ================= INIT ================= */
