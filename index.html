@@ -2527,13 +2527,22 @@ function renderDeckReference(container, deck){
     g.pairs.forEach(p=>{
       const row = document.createElement('div');
       row.className = 'ref-pair-row';
-      row.innerHTML = '<span>'+p[0]+'</span><span class="arrow">→</span><span>'+p[1]+'</span>';
-      const sp = document.createElement('button');
-      sp.className = 'speaker';
-      sp.style.width = '30px'; sp.style.height = '30px'; sp.style.fontSize = '13px'; sp.style.flex = 'none';
-      sp.textContent = '🔊';
-      sp.onclick = () => speak(p[0]);
-      row.appendChild(sp);
+      const makeSpeaker = (word) => {
+        const sp = document.createElement('button');
+        sp.className = 'speaker';
+        sp.style.width = '26px'; sp.style.height = '26px'; sp.style.fontSize = '12px'; sp.style.flex = 'none';
+        sp.textContent = '🔊';
+        sp.onclick = () => speak(word.split('(')[0].trim());
+        return sp;
+      };
+      const w1 = document.createElement('span'); w1.textContent = p[0];
+      const arrow = document.createElement('span'); arrow.className = 'arrow'; arrow.textContent = '→';
+      const w2 = document.createElement('span'); w2.textContent = p[1];
+      row.appendChild(w1);
+      row.appendChild(makeSpeaker(p[0]));
+      row.appendChild(arrow);
+      row.appendChild(w2);
+      row.appendChild(makeSpeaker(p[1]));
       grid.appendChild(row);
     });
     block.appendChild(grid);
