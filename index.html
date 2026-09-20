@@ -2393,7 +2393,7 @@ function playFlashAutoCurrent(){
   renderFlashCardVisual(item);
   const info = document.getElementById('flashAutoInfo');
   if(info) info.textContent = '🔁 自動播放中(第 ' + flashAutoRound + '/' + FLASH_AUTO_MAX_ROUNDS + ' 輪 · ' + (flashAutoIdx+1) + '/' + flashAutoQueue.length + ')';
-  const letters = item.en.replace(/[^a-zA-Z]/g,'').toUpperCase().split('');
+  const letters = item.en.replace(/[^a-zA-Z]/g,'').toLowerCase().split('');
   const letterParts = letters.map(ch => ({text:ch, lang:'en-US', rate:0.6, gap:150}));
   speakSequence([
     {text:item.en, lang:'en-US', rate:0.85, gap:300},
