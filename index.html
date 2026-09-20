@@ -579,7 +579,7 @@
       <button class="node n4" onclick="openActivity('grammar')">
         <div class="icon">🧩</div>
         <h3>文法練習</h3>
-        <p>Grammar · 綜合文法題庫(目前非依課程分類)</p>
+        <p>Grammar · 依期中/期末範圍出題,真實考題</p>
       </button>
     </div>
     <div class="badges-row">
@@ -818,6 +818,9 @@
     <label class="field-label">等級門檻(每行一個,格式:<b>星星數,稱號</b>,由低到高排序,最後一行是最終等級)</label>
     <textarea class="field-textarea" id="cfgTiers" rows="6" placeholder="0,🍩 甜甜圈新手&#10;60,🍩 甜點學徒"></textarea>
 
+    <label class="field-label">文法練習:同一題最多可以拿幾次星星(超過就只能練習、不再加分)</label>
+    <input type="number" class="field-select" id="cfgGrammarCap" min="1">
+
     <label class="field-label">後台管理密碼(下次要進這個畫面時輸入)</label>
     <input type="text" class="field-select" id="cfgPassword">
 
@@ -936,70 +939,88 @@ const DEFAULT_LESSONS = {
 };
 for(let i=9;i<=TOTAL_LESSONS;i++){ DEFAULT_LESSONS[i] = []; }
 
-const TOPICS = [
-  {key:'be', label:'Be動詞', icon:'🧩'},
-  {key:'present', label:'現在式', icon:'☀️'},
-  {key:'progressive', label:'進行式', icon:'🏃'},
-  {key:'past', label:'過去式', icon:'🕰️'},
-  {key:'plural', label:'複數', icon:'🔢'},
-  {key:'prep', label:'介系詞', icon:'📍'},
-  {key:'compare', label:'比較級', icon:'⚖️'},
-  {key:'wh', label:'疑問詞', icon:'❓'},
-  {key:'pronoun', label:'代名詞', icon:'🙋'},
-  {key:'article', label:'冠詞', icon:'🅰️'},
+const GRAMMAR_RANGES = [
+  {key:'midterm', label:'期中範圍', icon:'📝'},
+  {key:'final', label:'期末範圍', icon:'🎓'},
 ];
 
 const GRAMMAR = [
-  {t:'be',s:'I ___ a student.',o:['am','is','are','be'],a:0,e:'主詞是 I 的時候,be動詞要用「am」。'},
-  {t:'be',s:'She ___ my sister.',o:['am','is','are','be'],a:1,e:'主詞是單數的 She/He/It 時,be動詞用「is」。'},
-  {t:'be',s:'They ___ happy today.',o:['am','is','are','be'],a:2,e:'主詞是複數(they/we/you)時,be動詞用「are」。'},
-  {t:'be',s:'We ___ good friends.',o:['am','is','are','be'],a:2,e:'We 是複數主詞,要搭配「are」。'},
-
-  {t:'present',s:'He ___ (like) apples very much.',o:['like','likes','liking','liked'],a:1,e:'主詞是第三人稱單數(he/she/it)時,現在式動詞要加 s,變成 likes。'},
-  {t:'present',s:'My mom ___ (cook) dinner every day.',o:['cook','cooks','cooking','cooked'],a:1,e:'主詞 mom 是第三人稱單數,動詞要加 s → cooks。'},
-  {t:'present',s:'The dog ___ (run) very fast.',o:['run','runs','running','ran'],a:1,e:'第三人稱單數 the dog,動詞加 s → runs。'},
-  {t:'present',s:'Tom ___ (watch) TV every night.',o:['watch','watchs','watches','watched'],a:2,e:'watch 結尾是 ch,第三人稱單數要加 es → watches。'},
-
-  {t:'progressive',s:'Look! The cat ___ (sleep) on the bed.',o:['sleep','sleeps','is sleeping','slept'],a:2,e:'現在正在發生的動作,用「be動詞 + Ving」現在進行式。'},
-  {t:'progressive',s:'I ___ (do) my homework now.',o:['do','am doing','does','did'],a:1,e:'主詞是 I,現在進行式要用「am + Ving」。'},
-  {t:'progressive',s:'They ___ (play) basketball now.',o:['play','plays','are playing','played'],a:2,e:'they 是複數,現在進行式用「are + Ving」。'},
-  {t:'progressive',s:'She ___ (read) a book right now.',o:['reads','is reading','read','reading'],a:1,e:'主詞是 she,現在進行式用「is + Ving」。'},
-
-  {t:'past',s:'Yesterday, I ___ (play) soccer.',o:['play','plays','played','playing'],a:2,e:'yesterday 表示過去,規則動詞加 ed → played。'},
-  {t:'past',s:'We ___ (watch) a movie last night.',o:['watch','watches','watched','watching'],a:2,e:'last night 是過去時間,watch 加 ed → watched。'},
-  {t:'past',s:'He ___ (clean) his room this morning.',o:['clean','cleaned','cleans','cleaning'],a:1,e:'過去發生的動作,clean 加 ed → cleaned。'},
-  {t:'past',s:'I ___ (go) to school yesterday.',o:['go','goes','went','gone'],a:2,e:'go 是不規則動詞,過去式要背起來:go → went。'},
-  {t:'past',s:'She ___ (eat) breakfast at 7 this morning.',o:['eats','ate','eat','eating'],a:1,e:'eat 的過去式是不規則變化:eat → ate。'},
-  {t:'past',s:'They ___ (see) a lion at the zoo yesterday.',o:['see','saw','seen','sees'],a:1,e:'see 的過去式是不規則變化:see → saw。'},
-
-  {t:'plural',s:'I have two ___ (dog).',o:['dog','dogs','doges','dogies'],a:1,e:'一般名詞的複數,直接加 s → dogs。'},
-  {t:'plural',s:'There are five ___ (box) on the table.',o:['box','boxs','boxes','boxies'],a:2,e:'box 結尾是 x,複數要加 es → boxes。'},
-  {t:'plural',s:'She has three ___ (child).',o:['childs','childes','children','child'],a:2,e:'child 是不規則複數,要記起來:child → children。'},
-  {t:'plural',s:'I see many ___ (fish) in the river.',o:['fish','fishs','fishes','fishies'],a:0,e:'fish 的單複數同形,不用加 s。'},
-
-  {t:'prep',s:'The book is ___ the table.',o:['in','on','at','under'],a:1,e:'物品在平面「上」用「on」,例如 on the table。'},
-  {t:'prep',s:'The cat is ___ the box.',o:['on','in','at','to'],a:1,e:'東西在容器「裡面」用「in」,例如 in the box。'},
-  {t:'prep',s:'We meet ___ 8 o’clock.',o:['in','on','at','under'],a:2,e:'表示「幾點」的時間,要用「at」,例如 at 8 o’clock。'},
-  {t:'prep',s:'The ball is ___ the chair.',o:['under','on','in','at'],a:0,e:'東西在「下面」用「under」,例如 under the chair。'},
-
-  {t:'compare',s:'An elephant is ___ (big) than a cat.',o:['big','bigger','biggest','more big'],a:1,e:'短形容詞比較級加 er,big 字尾重複子音再加 er → bigger。'},
-  {t:'compare',s:'This is the ___ (tall) building in the city.',o:['tall','taller','tallest','more tall'],a:2,e:'表示「最...」用最高級,tall 加 est → tallest。'},
-  {t:'compare',s:'My brother is ___ (young) than me.',o:['young','younger','youngest','more young'],a:1,e:'短形容詞比較級加 er → younger。'},
-  {t:'compare',s:'She is the ___ (fast) runner in our class.',o:['fast','faster','fastest','more fast'],a:2,e:'最高級 fast 加 est → fastest。'},
-
-  {t:'wh',s:'___ is your name?',o:['What','Where','When','Who'],a:0,e:'問「什麼」用 What,這裡問的是名字內容。'},
-  {t:'wh',s:'___ do you live?',o:['What','Where','Why','Who'],a:1,e:'問「地點」用 Where。'},
-  {t:'wh',s:'___ is your birthday?',o:['When','Where','What','How'],a:0,e:'問「時間/日期」用 When。'},
-  {t:'wh',s:'___ is that boy over there?',o:['What','Where','How','Who'],a:3,e:'問「人是誰」用 Who。'},
-
-  {t:'pronoun',s:'This is Tom. ___ bag is red.',o:['He','His','Him','Her'],a:1,e:'描述「某人的」東西,要用所有格 His(他的)。'},
-  {t:'pronoun',s:'This is Mary. ___ hair is long.',o:['She','Her','Hers','He'],a:1,e:'Mary 是女生,所有格用 Her(她的)。'},
-  {t:'pronoun',s:'I have a dog. ___ name is Max.',o:['It','Its','His','Her'],a:1,e:'描述「它的」名字,動物用所有格 Its。'},
-  {t:'pronoun',s:'We love ___ teacher very much.',o:['us','we','our','ours'],a:2,e:'we 的所有格是 our(我們的)。'},
-
-  {t:'article',s:'I have ___ apple.',o:['a','an','the','x'],a:1,e:'apple 是母音開頭的單字,前面要用「an」。'},
-  {t:'article',s:'She has ___ cat.',o:['a','an','the','x'],a:0,e:'cat 是子音開頭的單字,前面用「a」。'},
-  {t:'article',s:'He has ___ umbrella.',o:['a','an','the','x'],a:1,e:'umbrella 是母音開頭的單字,前面要用「an」。'},
+  {"range":"midterm","s":"Yesterday, I ___ (play) soccer with my friends.","o":["play","plays","played","playing"],"a":2,"e":"規則動詞過去式直接加「ed」→ play → played。"},
+  {"range":"midterm","s":"She ___ (walk) to school every morning last week.","o":["walk","walks","walked","walking"],"a":2,"e":"過去發生的動作要用過去式,walk 加「ed」→ walked。"},
+  {"range":"midterm","s":"The bus ___ (stop) at the corner yesterday.","o":["stop","stops","stopped","stopping"],"a":2,"e":"stop 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ stopped。"},
+  {"range":"midterm","s":"It ___ (rain) a lot last month.","o":["rain","rains","rained","raining"],"a":2,"e":"規則動詞過去式直接加「ed」→ rain → rained。"},
+  {"range":"midterm","s":"My brother ___ (finish) his homework two hours ago.","o":["finish","finishes","finished","finishing"],"a":2,"e":"規則動詞過去式加「ed」→ finish → finished。"},
+  {"range":"midterm","s":"We ___ (watch) a movie last night.","o":["watch","watches","watched","watching"],"a":2,"e":"watch 是規則動詞,過去式加「ed」→ watched。"},
+  {"range":"midterm","s":"She ___ (study) math every day last semester.","o":["study","studys","studied","studying"],"a":2,"e":"study 結尾是「子音+y」,過去式要把 y 改成 i 再加「ed」→ studied。"},
+  {"range":"midterm","s":"He ___ (carry) the heavy bag to school yesterday.","o":["carry","carrys","carried","carrying"],"a":2,"e":"carry 結尾是「子音+y」,過去式要去 y 加「ied」→ carried。"},
+  {"range":"midterm","s":"The rabbit ___ (hop) across the grass a moment ago.","o":["hop","hops","hopped","hopping"],"a":2,"e":"hop 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ hopped。"},
+  {"range":"midterm","s":"Did you ___ (close) the window before you left?","o":["close","closes","closed","closing"],"a":0,"e":"Did 開頭的問句,後面動詞要用「原形」,不能加 ed,所以是 close。"},
+  {"range":"midterm","s":"Did your mom ___ (clean) the house yesterday?","o":["clean","cleans","cleaned","cleaning"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 cleaned。"},
+  {"range":"midterm","s":"I ___ (chat) with my friend online last night.","o":["chat","chats","chatted","chatting"],"a":2,"e":"chat 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ chatted。"},
+  {"range":"midterm","s":"They ___ (plan) a trip to the mountains last week.","o":["plan","plans","planned","planning"],"a":2,"e":"plan 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ planned。"},
+  {"range":"midterm","s":"The baby ___ (cry) loudly last night.","o":["cry","crys","cried","crying"],"a":2,"e":"cry 結尾是「子音+y」,過去式要去 y 加「ied」→ cried。"},
+  {"range":"midterm","s":"Did the team ___ (practice) before the game yesterday?","o":["practice","practices","practiced","practicing"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 practiced。"},
+  {"range":"midterm","s":"Did you ___ (eat) breakfast this morning?","o":["eat","eats","ate","eaten"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 ate。"},
+  {"range":"midterm","s":"I ___ (eat) a big breakfast this morning.","o":["eat","eats","ate","eaten"],"a":2,"e":"eat 是不規則動詞,過去式是 eat → ate。"},
+  {"range":"midterm","s":"He ___ (ride) his bicycle to school yesterday.","o":["ride","rides","rode","riding"],"a":2,"e":"ride 是不規則動詞,過去式是 ride → rode。"},
+  {"range":"midterm","s":"I ___ (drink) milk this morning.","o":["drink","drinks","drank","drunk"],"a":2,"e":"drink 是不規則動詞,過去式是 drink → drank。"},
+  {"range":"midterm","s":"My mother ___ (buy) new shoes last week.","o":["buy","buys","bought","buying"],"a":2,"e":"buy 是不規則動詞,過去式是 buy → bought。"},
+  {"range":"midterm","s":"Our teacher ___ (teach) us grammar yesterday.","o":["teach","teaches","taught","teaching"],"a":2,"e":"teach 是不規則動詞,過去式是 teach → taught。"},
+  {"range":"midterm","s":"The cat ___ (catch) the mouse last night.","o":["catch","catches","caught","catching"],"a":2,"e":"catch 是不規則動詞,過去式是 catch → caught。"},
+  {"range":"midterm","s":"Did you ___ (bring) an umbrella to school yesterday?","o":["bring","brings","brought","bringing"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 brought。"},
+  {"range":"midterm","s":"We ___ (meet) at the park last Sunday.","o":["meet","meets","met","meeting"],"a":2,"e":"meet 是不規則動詞,過去式是 meet → met。"},
+  {"range":"midterm","s":"The children ___ (see) a waterfall on their trip.","o":["see","sees","saw","seen"],"a":2,"e":"see 是不規則動詞,過去式是 see → saw。"},
+  {"range":"midterm","s":"I ___ (tell) my mom about the test last night.","o":["tell","tells","told","telling"],"a":2,"e":"tell 是不規則動詞,過去式是 tell → told。"},
+  {"range":"midterm","s":"She ___ (write) a letter to her friend yesterday.","o":["write","writes","wrote","written"],"a":2,"e":"write 是不規則動詞,過去式是 write → wrote。"},
+  {"range":"midterm","s":"They ___ (sing) a song at the party last night.","o":["sing","sings","sang","sung"],"a":2,"e":"sing 是不規則動詞,過去式是 sing → sang。"},
+  {"range":"midterm","s":"My brother ___ (break) the vase this morning.","o":["break","breaks","broke","broken"],"a":2,"e":"break 是不規則動詞,過去式是 break → broke。"},
+  {"range":"midterm","s":"The kids ___ (swim) in the lake last summer.","o":["swim","swims","swam","swimming"],"a":2,"e":"swim 是不規則動詞,過去式是 swim → swam。"},
+  {"range":"midterm","s":"Did you ___ (forget) your lunch box today?","o":["forget","forgets","forgot","forgetting"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 forgot。"},
+  {"range":"midterm","s":"She ___ (take) the bus to school yesterday.","o":["take","takes","took","taking"],"a":2,"e":"take 是不規則動詞,過去式是 take → took。"},
+  {"range":"midterm","s":"___ there a fountain in the park a long time ago?","o":["Was","Is","Were","Did"],"a":0,"e":"fountain 是單數,問句要用「Was there」。"},
+  {"range":"midterm","s":"___ there many tall buildings along the river a hundred years ago?","o":["Was","Is","Were","Did"],"a":2,"e":"buildings 是複數,問句要用「Were there」。"},
+  {"range":"midterm","s":"Were there ___ flowers in the garden?","o":["some","any","a","the"],"a":1,"e":"疑問句裡通常用「any」,不是「some」。"},
+  {"range":"midterm","s":"Yes, there were ___ flowers in the garden.","o":["some","any","a","an"],"a":0,"e":"肯定句裡要用「some」,不是「any」。"},
+  {"range":"midterm","s":"Was there ___ litter on the path?","o":["some","any","many","much"],"a":1,"e":"否定句/疑問句要用「any」,不是「some」。"},
+  {"range":"midterm","s":"No, there wasn't ___ litter on the path.","o":["some","any","a","an"],"a":1,"e":"否定句要用「any」,不能用「some」。"},
+  {"range":"midterm","s":"___ there a shopping mall in this town ten years ago?","o":["Was","Were","Is","Are"],"a":0,"e":"shopping mall 是單數,問句要用「Was there」。"},
+  {"range":"midterm","s":"___ there any settlers near the river long ago?","o":["Was","Were","Is","Did"],"a":1,"e":"settlers 是複數,問句要用「Were there」。"},
+  {"range":"midterm","s":"___ there any motorcycles on the bridge?","o":["Was","Is","Were","Did"],"a":2,"e":"motorcycles 是複數,問句要用「Were there」。"},
+  {"range":"midterm","s":"Was there a train station in Hsinchu five years ago? Yes, there ___ a train station.","o":["was","is","were","are"],"a":0,"e":"train station 是單數,回答要用「was」。"},
+  {"range":"midterm","s":"The ocean is ___ than the lake. (deep)","o":["deep","deeper","deepest","more deep"],"a":1,"e":"形容詞比較級,deep 加「er」→ deeper。"},
+  {"range":"midterm","s":"This mountain is ___ than that one. (high)","o":["high","higher","highest","more high"],"a":1,"e":"形容詞比較級,high 加「er」→ higher。"},
+  {"range":"midterm","s":"A river is usually ___ than a path. (wide)","o":["wide","wider","widest","more wide"],"a":1,"e":"形容詞比較級,wide 加「er」→ wider。"},
+  {"range":"midterm","s":"This bridge is ___ than that bridge. (long)","o":["long","longer","longest","more long"],"a":1,"e":"形容詞比較級,long 加「er」→ longer。"},
+  {"range":"midterm","s":"This temple is ___ than that building. (old)","o":["old","older","oldest","more old"],"a":1,"e":"形容詞比較級,old 加「er」→ older。"},
+  {"range":"midterm","s":"The waterfall was ___ than we expected. (beautiful)","o":["beautiful","beautifuler","more beautiful","most beautiful"],"a":2,"e":"beautiful 是長形容詞,比較級要在前面加「more」,不能加「er」。"},
+  {"range":"midterm","s":"This lake is the ___ in the country. (deep)","o":["deep","deeper","deepest","more deep"],"a":2,"e":"最高級要用「the + 形容詞est」→ the deepest。"},
+  {"range":"midterm","s":"This mountain is the ___ in the country. (high)","o":["high","higher","highest","more high"],"a":2,"e":"最高級要用「the + 形容詞est」→ the highest。"},
+  {"range":"midterm","s":"A skateboard is ___ than a motorcycle. (small)","o":["small","smaller","smallest","more small"],"a":1,"e":"形容詞比較級,small 加「er」→ smaller。"},
+  {"range":"midterm","s":"An elephant is ___ than a cheetah. (big)","o":["big","bigger","biggest","more big"],"a":1,"e":"big 結尾是「子音+母音+子音」,比較級要重複最後一個字母再加「er」→ bigger。"},
+  {"range":"midterm","s":"You ___ swim here. The ocean is very dangerous.","o":["must","mustn't","don't","aren't"],"a":1,"e":"危險的事要用「mustn't」表示禁止。"},
+  {"range":"midterm","s":"You ___ be quiet. The baby is sleeping.","o":["must","mustn't","don't","isn't"],"a":0,"e":"要求別人做某件事用「must」。"},
+  {"range":"midterm","s":"You ___ do your homework. Then you can play.","o":["must","mustn't","don't","didn't"],"a":0,"e":"表示應該做的事用「must」。"},
+  {"range":"midterm","s":"You ___ pick the flowers in the park.","o":["must","mustn't","don't","can"],"a":1,"e":"禁止的行為要用「mustn't」。"},
+  {"range":"midterm","s":"You ___ throw litter on the ground. Use the garbage can.","o":["must","mustn't","don't","isn't"],"a":1,"e":"禁止亂丟垃圾要用「mustn't」。"},
+  {"range":"midterm","s":"My classmates and I ___ run in the hallway.","o":["must","mustn't","don't","doesn't"],"a":1,"e":"禁止在走廊奔跑,用「mustn't」。"},
+  {"range":"midterm","s":"The students ___ play computer games in class.","o":["must","mustn't","don't","isn't"],"a":1,"e":"禁止在課堂上做的事用「mustn't」。"},
+  {"range":"midterm","s":"The path goes ___ the river.","o":["along","between","through","inside"],"a":0,"e":"沿著河邊走要用「along」。"},
+  {"range":"midterm","s":"The teacher stood ___ Amy and Max.","o":["along","between","through","inside"],"a":1,"e":"在兩者之間要用「between」。"},
+  {"range":"midterm","s":"The ferry sailed ___ the tunnel.","o":["along","between","through","inside"],"a":2,"e":"穿過隧道要用「through」。"},
+  {"range":"midterm","s":"There is a fountain ___ the park.","o":["in the middle of","at the top of","between","along"],"a":0,"e":"在中間要用「in the middle of」。"},
+  {"range":"midterm","s":"The flag is ___ the mountain.","o":["in the middle of","at the top of","between","inside"],"a":1,"e":"在最上面要用「at the top of」。"},
+  {"range":"midterm","s":"The dog is ___ the house.","o":["along","between","through","inside"],"a":3,"e":"在裡面要用「inside」。"},
+  {"range":"midterm","s":"A motorcycle is ___ the bus and the taxi.","o":["along","between","through","inside"],"a":1,"e":"在兩者中間要用「between」。"},
+  {"range":"midterm","s":"My mom ___ to live in Australia.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
+  {"range":"midterm","s":"Did your teacher ___ to live in Jordan? Yes, he did.","o":["use","used","uses","using"],"a":0,"e":"疑問句「Did...use to...?」裡動詞要用原形 use,不能加 d。"},
+  {"range":"midterm","s":"My parents ___ to study English when they were young.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
+  {"range":"midterm","s":"Tim ___ to go running every day.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
+  {"range":"midterm","s":"Holly didn't ___ to go surfing at the beach.","o":["use","used","uses","using"],"a":0,"e":"didn't 後面動詞要用原形,是「use to」不是「used to」。"},
+  {"range":"midterm","s":"Dad ___ handsome when he was young.","o":["is","was","were","be"],"a":1,"e":"描述過去的事要用過去式 be動詞,單數主詞用「was」。"},
+  {"range":"midterm","s":"My mom and dad ___ generous when I was little.","o":["is","was","were","be"],"a":2,"e":"複數主詞 mom and dad 要用「were」。"},
+  {"range":"midterm","s":"Sometimes, I ___ shy in class.","o":["am","is","are","was"],"a":0,"e":"現在的習慣性描述用現在式 be動詞,主詞是 I 要用「am」。"},
+  {"range":"midterm","s":"It is important to be ___. You should always try to help others.","o":["worried","generous","shy","relaxed"],"a":1,"e":"樂於幫助別人是「慷慨的」→ generous。"},
+  {"range":"midterm","s":"My sister was very nervous, but everyone else was ___.","o":["worried","relaxed","shy","cheerful"],"a":1,"e":"跟緊張相反的感覺是「放鬆的」→ relaxed。"}
 ];
 
 /* ================= REWARD CONFIG (editable via Parent-mode admin panel) ================= */
@@ -1019,7 +1040,8 @@ function defaultConfig(){
       {min:800, label:'🍩 英語甜點大師'},
     ],
     parentPassword: '0000',
-    passwordHint: ''
+    passwordHint: '',
+    grammarStarCap: 3
   };
 }
 function loadConfig(){
@@ -1063,7 +1085,7 @@ async function pushCloudData(){
   try{
     await sb.from('english_progress').upsert({
       id: CLOUD_ROW_ID,
-      data: { save, wordStats, lessonOverrides, config },
+      data: { save, wordStats, lessonOverrides, config, grammarStats },
       updated_at: new Date().toISOString()
     });
   }catch(e){ /* offline, or table not created yet — local data stays safe */ }
@@ -1074,10 +1096,12 @@ function applyCloudPayload(remote){
   if(remote.wordStats) wordStats = remote.wordStats;
   if(remote.lessonOverrides) lessonOverrides = remote.lessonOverrides;
   if(remote.config) config = Object.assign({}, config, remote.config);
+  if(remote.grammarStats) grammarStats = remote.grammarStats;
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){}
   try{ localStorage.setItem(STATS_KEY, JSON.stringify(wordStats)); }catch(e){}
   try{ localStorage.setItem(LESSON_KEY, JSON.stringify(lessonOverrides)); }catch(e){}
   try{ localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }catch(e){}
+  try{ localStorage.setItem(GRAMMAR_STATS_KEY, JSON.stringify(grammarStats)); }catch(e){}
   checkDailyStatus();
   initSelection();
   renderLessonGrid();
@@ -1238,6 +1262,7 @@ function openMasterPanel(){
   document.getElementById('cfgStreakText').value = config.streakBonusText;
   document.getElementById('cfgFinalText').value = config.finalRewardText;
   document.getElementById('cfgTiers').value = config.tiers.map(t=>t.min+','+t.label).join('\n');
+  document.getElementById('cfgGrammarCap').value = config.grammarStarCap;
   document.getElementById('cfgPassword').value = config.parentPassword;
   document.getElementById('cfgPasswordHint').value = config.passwordHint || '';
   document.getElementById('adjStarAmount').value = '';
@@ -1305,14 +1330,15 @@ function saveMasterPanel(){
     if(isNaN(min) || !label) return null;
     return {min, label};
   }).filter(Boolean).sort((a,b)=>a.min-b.min);
+  const grammarCap = parseInt(document.getElementById('cfgGrammarCap').value, 10);
   const password = document.getElementById('cfgPassword').value.trim();
   const passwordHint = document.getElementById('cfgPasswordHint').value.trim();
 
-  if(!dailyGoal || dailyGoal<1 || !streakDays || streakDays<1 || !streakText || !finalText || tiers.length===0 || !password){
+  if(!dailyGoal || dailyGoal<1 || !streakDays || streakDays<1 || !streakText || !finalText || tiers.length===0 || !grammarCap || grammarCap<1 || !password){
     alert('請確認每個欄位都有正確填寫(數字要大於0,等級門檻至少一行,格式:星星數,稱號)');
     return;
   }
-  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, parentPassword: password, passwordHint: passwordHint };
+  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, grammarStarCap: grammarCap, parentPassword: password, passwordHint: passwordHint };
   persistConfig();
   closeMasterPanel();
   refreshStatsBar();
@@ -1365,6 +1391,25 @@ function bumpWordStat(en, correct){
   if(!correct) s.wrong++;
   wordStats[key] = s;
   persistWordStats();
+}
+const GRAMMAR_STATS_KEY = 'pipiForest_grammarstats_v1';
+function loadGrammarStats(){
+  try{
+    const raw = localStorage.getItem(GRAMMAR_STATS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {};
+}
+function persistGrammarStats(){ try{ localStorage.setItem(GRAMMAR_STATS_KEY, JSON.stringify(grammarStats)); }catch(e){} schedulePush(); }
+let grammarStats = loadGrammarStats();
+function grammarCorrectCount(sentence){
+  return (grammarStats[sentence] && grammarStats[sentence].correct) || 0;
+}
+function bumpGrammarStat(sentence){
+  const s = grammarStats[sentence] || {correct:0};
+  s.correct++;
+  grammarStats[sentence] = s;
+  persistGrammarStats();
 }
 function wordWeight(en){
   const s = wordStats[en.toLowerCase()];
@@ -2145,11 +2190,11 @@ function finishSpell(){
 }
 
 /* ================= GRAMMAR ================= */
-let grammarTopic='all', grammarItems=[], grammarIdx=0, grammarResults=[], grammarScore=0;
-function startGrammar(topicKey){
-  grammarTopic = topicKey;
-  renderChips(document.getElementById('grammarChips'), TOPICS, grammarTopic, (k)=>{ startGrammar(k); });
-  const pool = topicKey==='all' ? GRAMMAR : GRAMMAR.filter(g=>g.t===topicKey);
+let grammarRange='all', grammarItems=[], grammarIdx=0, grammarResults=[], grammarScore=0;
+function startGrammar(rangeKey){
+  grammarRange = rangeKey;
+  renderChips(document.getElementById('grammarChips'), GRAMMAR_RANGES, grammarRange, (k)=>{ startGrammar(k); });
+  const pool = rangeKey==='all' ? GRAMMAR : GRAMMAR.filter(g=>g.range===rangeKey);
   grammarItems = pickN(pool, 8);
   grammarIdx = 0; grammarScore = 0;
   grammarResults = new Array(grammarItems.length).fill(null);
@@ -2161,13 +2206,13 @@ function renderGrammar(){
   document.getElementById('grammarScore').textContent = grammarScore;
   renderDots(document.getElementById('grammarDots'), grammarItems.length, grammarIdx, grammarResults);
   const item = grammarItems[grammarIdx];
-  const topicMeta = TOPICS.find(t=>t.key===item.t);
+  const rangeMeta = GRAMMAR_RANGES.find(r=>r.key===item.range);
 
   const card = document.getElementById('grammarCard');
   card.innerHTML = '';
   const topic = document.createElement('div');
   topic.className = 'qtopic';
-  topic.textContent = topicMeta.icon + ' ' + topicMeta.label;
+  topic.textContent = rangeMeta ? (rangeMeta.icon + ' ' + rangeMeta.label) : '';
   card.appendChild(topic);
 
   const prompt = document.createElement('div');
@@ -2225,7 +2270,12 @@ function answerGrammar(chosenIdx, ev){
     grammarScore++;
     document.getElementById('grammarScore').textContent = grammarScore;
     sparkleBurst(ev.clientX, ev.clientY);
-    addStars(1);
+    if(currentMode==='vicky' && grammarCorrectCount(item.s) < config.grammarStarCap){
+      addStars(1);
+      bumpGrammarStat(item.s);
+    } else if(currentMode==='vicky'){
+      fb.textContent += '(這題已經練習過很多次,這次沒有星星,去挑戰新題目吧!)';
+    }
   }
   renderDots(document.getElementById('grammarDots'), grammarItems.length, grammarIdx, grammarResults);
   document.getElementById('grammarNextBtn').style.display = 'inline-flex';
@@ -2236,7 +2286,7 @@ function finishGrammar(){
     title: grammarScore===grammarItems.length ? '文法全對!好厲害!' : '完成文法練習!',
     scoreText: grammarScore + '/' + grammarItems.length,
     starsEarned: grammarScore,
-    onRetry: ()=>startGrammar(grammarTopic)
+    onRetry: ()=>startGrammar(grammarRange)
   });
 }
 
