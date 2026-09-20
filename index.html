@@ -2353,14 +2353,15 @@ function speakSequence(parts, onDone){
   function next(){
     if(i >= parts.length){ onDone && onDone(); return; }
     const p = parts[i++];
+    const advance = () => { if(p.gap) setTimeout(next, p.gap); else next(); };
     try{
       const u = new SpeechSynthesisUtterance(p.text);
       u.lang = p.lang;
       u.rate = p.rate;
-      u.onend = next;
-      u.onerror = next;
+      u.onend = advance;
+      u.onerror = advance;
       speechSynthesis.speak(u);
-    }catch(e){ next(); }
+    }catch(e){ advance(); }
   }
   next();
 }
@@ -2392,10 +2393,12 @@ function playFlashAutoCurrent(){
   renderFlashCardVisual(item);
   const info = document.getElementById('flashAutoInfo');
   if(info) info.textContent = '🔁 自動播放中(第 ' + flashAutoRound + '/' + FLASH_AUTO_MAX_ROUNDS + ' 輪 · ' + (flashAutoIdx+1) + '/' + flashAutoQueue.length + ')';
-  const spelled = item.en.replace(/[^a-zA-Z]/g,'').toUpperCase().split('').join('. ') + '.';
+  const letters = item.en.replace(/[^a-zA-Z]/g,'').toUpperCase().split('');
+  const letterParts = letters.map(ch => ({text:ch, lang:'en-US', rate:0.6, gap:150}));
   speakSequence([
-    {text:item.en, lang:'en-US', rate:0.85},
-    {text:spelled, lang:'en-US', rate:0.6},
+    {text:item.en, lang:'en-US', rate:0.85, gap:300},
+    ...letterParts,
+    {text:item.en, lang:'en-US', rate:0.85, gap:300},
     {text:item.zh, lang:'zh-TW', rate:1}
   ], ()=>{
     if(!flashAutoPlayOn) return;
