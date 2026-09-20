@@ -363,6 +363,7 @@
   }
   .round-btn:hover{ background:var(--cream-3); }
   .round-btn.primary{ background:var(--pink); border-color:var(--pink); color:#fff; }
+  .round-btn.active{ background:var(--ok); border-color:var(--ok); color:#fff; }
 
   /* ---------- Question card (quiz/grammar) ---------- */
   .qcard{
@@ -711,10 +712,12 @@
         <button class="round-btn side-arrow" onclick="flashStep(1)">➡️</button>
       </div>
       <div class="card-controls">
-        <button class="round-btn primary" onclick="speak(flashCurrent.en)" title="正常速度">🔊</button>
-        <button class="round-btn" onclick="speak(flashCurrent.en, FLASH_SLOW_RATE)" title="慢速播放">🐢</button>
+        <button class="round-btn primary" onclick="if(flashAutoPlayOn) stopFlashAuto(); speak(flashCurrent.en)" title="正常速度">🔊</button>
+        <button class="round-btn" onclick="if(flashAutoPlayOn) stopFlashAuto(); speak(flashCurrent.en, FLASH_SLOW_RATE)" title="慢速播放">🐢</button>
+        <button class="round-btn" id="flashAutoBtn" onclick="toggleFlashAuto()" title="自動播放:英文→拼字母→中文">🔁</button>
       </div>
       <div class="score-live" id="flashCounter">1 / 8</div>
+      <div class="swipe-hint" id="flashAutoInfo"></div>
       <div class="swipe-hint">👈 左右滑動也能換卡片 👉</div>
     </div>
   </section>
@@ -2167,6 +2170,7 @@ function saveEditor(){
 /* ================= NAV ================= */
 function goHome(){
   try{ speechSynthesis.cancel(); }catch(e){}
+  if(flashAutoPlayOn) stopFlashAuto();
   showScreen('home');
   document.getElementById('homeGreeting').textContent = GREETINGS[Math.floor(Math.random()*GREETINGS.length)];
   renderLessonGrid();
@@ -2301,27 +2305,33 @@ function startFlash(){
   flashViewCount = 0;
   flashCurrent = randomFlashCard();
   document.getElementById('flashRangeInfo').textContent = rangeLabel();
+  stopFlashAuto();
   showScreen('flash');
   renderFlash();
 }
-function renderFlash(){
-  const item = flashCurrent;
-  flashViewCount++;
+function renderFlashCardVisual(item){
   document.getElementById('flashTagFront').textContent = 'Lesson ' + item.lesson;
   document.getElementById('flashTagBack').textContent = 'Lesson ' + item.lesson;
   document.getElementById('flashWord').textContent = item.en;
   document.getElementById('flashZh').textContent = item.zh;
-  document.getElementById('flashCounter').textContent = '已複習 ' + flashViewCount + ' 張';
   document.getElementById('flashCard').classList.remove('flipped');
+}
+function renderFlash(){
+  const item = flashCurrent;
+  flashViewCount++;
+  renderFlashCardVisual(item);
+  document.getElementById('flashCounter').textContent = '已複習 ' + flashViewCount + ' 張';
   clearTimeout(flashAutoSpeakTimer);
   speak(item.en);
   flashAutoSpeakTimer = setTimeout(()=>{ speak(item.en, FLASH_SLOW_RATE); }, 1500);
 }
 function flipCard(){
   if(flashSwiped){ flashSwiped = false; return; }
+  if(flashAutoPlayOn) stopFlashAuto();
   document.getElementById('flashCard').classList.toggle('flipped');
 }
 function flashStep(dir){
+  if(flashAutoPlayOn) stopFlashAuto();
   if(dir > 0){
     flashHistory.push(flashCurrent);
     flashCurrent = randomFlashCard(flashCurrent);
@@ -2330,6 +2340,81 @@ function flashStep(dir){
     flashCurrent = flashHistory.pop();
   }
   renderFlash();
+}
+
+/* ---- Flashcard auto-play: English word -> spelled letters -> Chinese meaning ---- */
+const FLASH_AUTO_MAX_ROUNDS = 3;
+let flashAutoPlayOn = false;
+let flashAutoQueue = [], flashAutoIdx = 0, flashAutoRound = 1;
+function speakSequence(parts, onDone){
+  if(!('speechSynthesis' in window)){ onDone && onDone(); return; }
+  let i = 0;
+  function next(){
+    if(i >= parts.length){ onDone && onDone(); return; }
+    const p = parts[i++];
+    try{
+      const u = new SpeechSynthesisUtterance(p.text);
+      u.lang = p.lang;
+      u.rate = p.rate;
+      u.onend = next;
+      u.onerror = next;
+      speechSynthesis.speak(u);
+    }catch(e){ next(); }
+  }
+  next();
+}
+function toggleFlashAuto(){
+  if(flashAutoPlayOn){ stopFlashAuto(); return; }
+  flashAutoPlayOn = true;
+  document.getElementById('flashAutoBtn').classList.add('active');
+  document.getElementById('flashAutoBtn').textContent = '⏸️';
+  clearTimeout(flashAutoSpeakTimer);
+  try{ speechSynthesis.cancel(); }catch(e){}
+  flashAutoRound = 1;
+  flashAutoQueue = shuffle(flashPool);
+  flashAutoIdx = 0;
+  playFlashAutoCurrent();
+}
+function stopFlashAuto(){
+  flashAutoPlayOn = false;
+  clearTimeout(flashAutoSpeakTimer);
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const btn = document.getElementById('flashAutoBtn');
+  if(btn){ btn.classList.remove('active'); btn.textContent = '🔁'; }
+  const info = document.getElementById('flashAutoInfo');
+  if(info) info.textContent = '';
+}
+function playFlashAutoCurrent(){
+  if(!flashAutoPlayOn || flashAutoQueue.length === 0){ stopFlashAuto(); return; }
+  const item = flashAutoQueue[flashAutoIdx];
+  flashCurrent = item;
+  renderFlashCardVisual(item);
+  const info = document.getElementById('flashAutoInfo');
+  if(info) info.textContent = '🔁 自動播放中(第 ' + flashAutoRound + '/' + FLASH_AUTO_MAX_ROUNDS + ' 輪 · ' + (flashAutoIdx+1) + '/' + flashAutoQueue.length + ')';
+  const spelled = item.en.replace(/[^a-zA-Z]/g,'').toUpperCase().split('').join('. ') + '.';
+  speakSequence([
+    {text:item.en, lang:'en-US', rate:0.85},
+    {text:spelled, lang:'en-US', rate:0.6},
+    {text:item.zh, lang:'zh-TW', rate:1}
+  ], ()=>{
+    if(!flashAutoPlayOn) return;
+    flashAutoSpeakTimer = setTimeout(()=>{
+      if(!flashAutoPlayOn) return;
+      flashAutoIdx++;
+      if(flashAutoIdx >= flashAutoQueue.length){
+        flashAutoRound++;
+        if(flashAutoRound > FLASH_AUTO_MAX_ROUNDS){
+          stopFlashAuto();
+          const infoEl = document.getElementById('flashAutoInfo');
+          if(infoEl) infoEl.textContent = '✅ 已經播放 ' + FLASH_AUTO_MAX_ROUNDS + ' 輪,自動停止囉!';
+          return;
+        }
+        flashAutoQueue = shuffle(flashPool);
+        flashAutoIdx = 0;
+      }
+      playFlashAutoCurrent();
+    }, 900);
+  });
 }
 function setupFlashSwipe(){
   const el = document.getElementById('flashCard');
