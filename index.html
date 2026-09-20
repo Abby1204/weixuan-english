@@ -541,6 +541,22 @@
   }
   .tier-row.done{ background:var(--ok-light); color:var(--ok-deep); }
 
+  /* ---------- Admin (MASTER) category cards ---------- */
+  .admin-hub{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr));
+    gap:10px; margin-bottom:6px;
+  }
+  .admin-hub[hidden]{ display:none !important; }
+  .admin-cat-card{
+    font-family:inherit; cursor:pointer; text-align:center;
+    background:var(--cream-2); border:2px solid var(--line); border-radius:16px;
+    padding:16px 10px; box-shadow:0 4px 0 var(--shadow); color:var(--ink);
+  }
+  .admin-cat-card:hover{ border-color:var(--pink); transform:translateY(-2px); }
+  .admin-cat-icon{ font-size:26px; margin-bottom:6px; }
+  .admin-cat-name{ font-family:"Baloo 2"; font-weight:800; font-size:12.5px; color:var(--pink-deep); line-height:1.35; }
+  .admin-section .field-label:first-of-type{ margin-top:0; }
+
   /* ---------- Reference (browse-only) ---------- */
   .ref-lesson-block{ margin-bottom:22px; }
   .ref-lesson-title{
@@ -897,44 +913,89 @@
   <div class="result-card wide" style="text-align:left;">
     <h2 style="text-align:center;margin-bottom:16px;">⚙️ 後台管理(MASTER)</h2>
 
-    <div class="reward-block" style="background:var(--cream-3);border-radius:14px;padding:14px;">
-      <div class="reward-title">⚖️ 手動調整星星(獎勵/處罰用)</div>
-      <div class="reward-desc" style="margin-bottom:10px;">目前星星:<b id="adjCurrentStars">0</b> 顆。輸入要調整的數量(負數表示扣除,例如操作不當或耍小心機),可以順便填原因方便之後查。</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-        <input type="number" class="field-select" id="adjStarAmount" placeholder="例如 -10" style="flex:1;min-width:100px;">
-        <input type="text" class="field-select" id="adjStarReason" placeholder="原因(選填)" style="flex:2;min-width:160px;">
-        <button class="ghost-btn" onclick="applyStarAdjustment()" style="white-space:nowrap;">套用調整</button>
-      </div>
-      <div id="adjHistoryList" style="display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto;"></div>
+    <div id="masterHub" class="admin-hub">
+      <button class="admin-cat-card" onclick="openMasterCategory('daily')">
+        <div class="admin-cat-icon">📅</div>
+        <div class="admin-cat-name">每日目標 /<br>打卡獎勵</div>
+      </button>
+      <button class="admin-cat-card" onclick="openMasterCategory('tiers')">
+        <div class="admin-cat-icon">🏆</div>
+        <div class="admin-cat-name">等級門檻 /<br>最終獎勵</div>
+      </button>
+      <button class="admin-cat-card" onclick="openMasterCategory('lessons')">
+        <div class="admin-cat-icon">📘</div>
+        <div class="admin-cat-name">複習範圍<br>預設</div>
+      </button>
+      <button class="admin-cat-card" onclick="openMasterCategory('grammar')">
+        <div class="admin-cat-icon">🧩</div>
+        <div class="admin-cat-name">文法練習<br>設定</div>
+      </button>
+      <button class="admin-cat-card" onclick="openMasterCategory('adjust')">
+        <div class="admin-cat-icon">⚖️</div>
+        <div class="admin-cat-name">手動調整<br>星星</div>
+      </button>
+      <button class="admin-cat-card" onclick="openMasterCategory('password')">
+        <div class="admin-cat-icon">🔒</div>
+        <div class="admin-cat-name">後台密碼<br>設定</div>
+      </button>
     </div>
 
-    <label class="field-label">每日打卡目標(星星數)</label>
-    <input type="number" class="field-select" id="cfgDailyGoal" min="1">
+    <div id="masterDetail" hidden>
+      <button class="ghost-btn" onclick="backToMasterHub()" style="margin-bottom:14px;">← 返回分類</button>
 
-    <label class="field-label">連續打卡幾天可以兌換獎勵</label>
-    <input type="number" class="field-select" id="cfgStreakDays" min="1">
+      <div class="admin-section" data-section="daily" hidden>
+        <label class="field-label">每日打卡目標(星星數)</label>
+        <input type="number" class="field-select" id="cfgDailyGoal" min="1">
+        <label class="field-label">連續打卡幾天可以兌換獎勵</label>
+        <input type="number" class="field-select" id="cfgStreakDays" min="1">
+        <label class="field-label">打卡獎勵內容(文字)</label>
+        <input type="text" class="field-select" id="cfgStreakText">
+      </div>
 
-    <label class="field-label">打卡獎勵內容(文字)</label>
-    <input type="text" class="field-select" id="cfgStreakText">
+      <div class="admin-section" data-section="tiers" hidden>
+        <label class="field-label">最終等級獎勵內容(文字)</label>
+        <input type="text" class="field-select" id="cfgFinalText">
+        <label class="field-label">等級門檻(每行一個,格式:<b>星星數,稱號</b>,由低到高排序,最後一行是最終等級)</label>
+        <textarea class="field-textarea" id="cfgTiers" rows="6" placeholder="0,🍩 甜甜圈新手&#10;60,🍩 甜點學徒"></textarea>
+      </div>
 
-    <label class="field-label">最終等級獎勵內容(文字)</label>
-    <input type="text" class="field-select" id="cfgFinalText">
+      <div class="admin-section" data-section="lessons" hidden>
+        <label class="field-label">每次打開 App 預設勾選哪幾課(蔚瑄自己還是可以在首頁隨時改選)</label>
+        <div class="preset-row">
+          <button class="preset-btn" onclick="pickCfgLessonPreset('mid')">📝 期中 1-8</button>
+          <button class="preset-btn" onclick="pickCfgLessonPreset('final')">📝 期末 9-16</button>
+          <button class="preset-btn" onclick="pickCfgLessonPreset('all')">🌈 全部已建立的課程</button>
+          <button class="preset-btn" onclick="pickCfgLessonPreset('clear')">✖️ 清除選擇</button>
+        </div>
+        <div class="lesson-grid" id="cfgLessonGrid"></div>
+      </div>
 
-    <label class="field-label">等級門檻(每行一個,格式:<b>星星數,稱號</b>,由低到高排序,最後一行是最終等級)</label>
-    <textarea class="field-textarea" id="cfgTiers" rows="6" placeholder="0,🍩 甜甜圈新手&#10;60,🍩 甜點學徒"></textarea>
+      <div class="admin-section" data-section="grammar" hidden>
+        <label class="field-label">文法練習:同一題最多可以拿幾次星星(超過就只能練習、不再加分)</label>
+        <input type="number" class="field-select" id="cfgGrammarCap" min="1">
+      </div>
 
-    <label class="field-label">文法練習:同一題最多可以拿幾次星星(超過就只能練習、不再加分)</label>
-    <input type="number" class="field-select" id="cfgGrammarCap" min="1">
+      <div class="admin-section" data-section="adjust" hidden>
+        <div class="reward-desc" style="margin-bottom:10px;">目前星星:<b id="adjCurrentStars">0</b> 顆。輸入要調整的數量(負數表示扣除,例如操作不當或耍小心機),可以順便填原因方便之後查。</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <input type="number" class="field-select" id="adjStarAmount" placeholder="例如 -10" style="flex:1;min-width:100px;">
+          <input type="text" class="field-select" id="adjStarReason" placeholder="原因(選填)" style="flex:2;min-width:160px;">
+          <button class="ghost-btn" onclick="applyStarAdjustment()" style="white-space:nowrap;">套用調整</button>
+        </div>
+        <div id="adjHistoryList" style="display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto;"></div>
+      </div>
 
-    <label class="field-label">後台管理密碼(下次要進這個畫面時輸入)</label>
-    <input type="text" class="field-select" id="cfgPassword">
+      <div class="admin-section" data-section="password" hidden>
+        <label class="field-label">後台管理密碼(下次要進這個畫面時輸入)</label>
+        <input type="text" class="field-select" id="cfgPassword">
+        <label class="field-label">密碼提示(輸入密碼時會顯示給你看,幫助想起密碼;留空則不顯示)</label>
+        <input type="text" class="field-select" id="cfgPasswordHint" placeholder="例如:我的幸運數字">
+      </div>
 
-    <label class="field-label">密碼提示(輸入密碼時會顯示給你看,幫助想起密碼;留空則不顯示)</label>
-    <input type="text" class="field-select" id="cfgPasswordHint" placeholder="例如:我的幸運數字">
-
-    <div class="result-actions">
-      <button class="ghost-btn" onclick="closeMasterPanel()">取消</button>
-      <button class="primary-btn" onclick="saveMasterPanel()">💾 儲存設定</button>
+      <div class="result-actions">
+        <button class="ghost-btn" onclick="closeMasterPanel()">取消</button>
+        <button class="primary-btn" onclick="saveMasterPanel()">💾 儲存設定</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1176,7 +1237,8 @@ function defaultConfig(){
     ],
     parentPassword: '0000',
     passwordHint: '',
-    grammarStarCap: 3
+    grammarStarCap: 3,
+    defaultLessons: [1,2,3,4,5,6,7,8]
   };
 }
 function loadConfig(){
@@ -1402,11 +1464,52 @@ function openMasterPanel(){
   document.getElementById('cfgPasswordHint').value = config.passwordHint || '';
   document.getElementById('adjStarAmount').value = '';
   document.getElementById('adjStarReason').value = '';
+  pendingCfgDefaultLessons = new Set(Array.isArray(config.defaultLessons) ? config.defaultLessons : []);
+  renderCfgLessonGrid();
   renderMasterCurrentStars();
   renderAdjustmentHistory();
+  document.getElementById('masterHub').hidden = false;
+  document.getElementById('masterDetail').hidden = true;
+  document.querySelectorAll('#masterDetail .admin-section').forEach(el=>{ el.hidden = true; });
   document.getElementById('masterOverlay').hidden = false;
 }
 function closeMasterPanel(){ document.getElementById('masterOverlay').hidden = true; }
+function openMasterCategory(cat){
+  document.getElementById('masterHub').hidden = true;
+  document.getElementById('masterDetail').hidden = false;
+  document.querySelectorAll('#masterDetail .admin-section').forEach(el=>{
+    el.hidden = (el.dataset.section !== cat);
+  });
+}
+function backToMasterHub(){
+  document.getElementById('masterHub').hidden = false;
+  document.getElementById('masterDetail').hidden = true;
+}
+let pendingCfgDefaultLessons = new Set();
+function pickCfgLessonPreset(preset){
+  if(preset === 'mid') pendingCfgDefaultLessons = new Set([1,2,3,4,5,6,7,8]);
+  else if(preset === 'final') pendingCfgDefaultLessons = new Set([9,10,11,12,13,14,15,16]);
+  else if(preset === 'all') pendingCfgDefaultLessons = new Set(Array.from({length:TOTAL_LESSONS}, (_,i)=>i+1).filter(hasWords));
+  else if(preset === 'clear') pendingCfgDefaultLessons = new Set();
+  renderCfgLessonGrid();
+}
+function renderCfgLessonGrid(){
+  const grid = document.getElementById('cfgLessonGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  for(let n=1;n<=TOTAL_LESSONS;n++){
+    const has = hasWords(n);
+    const btn = document.createElement('button');
+    btn.className = 'lesson-chip' + (has ? ' has' : ' empty') + (pendingCfgDefaultLessons.has(n) ? ' selected' : '');
+    btn.textContent = n;
+    btn.title = has ? ('Lesson ' + n + ' · ' + getLessonWords(n).length + ' 個單字') : ('Lesson ' + n + ' 尚未新增單字');
+    btn.onclick = () => {
+      if(pendingCfgDefaultLessons.has(n)) pendingCfgDefaultLessons.delete(n); else pendingCfgDefaultLessons.add(n);
+      renderCfgLessonGrid();
+    };
+    grid.appendChild(btn);
+  }
+}
 function renderMasterCurrentStars(){
   const el = document.getElementById('adjCurrentStars');
   if(el) el.textContent = save.stars;
@@ -1468,12 +1571,13 @@ function saveMasterPanel(){
   const grammarCap = parseInt(document.getElementById('cfgGrammarCap').value, 10);
   const password = document.getElementById('cfgPassword').value.trim();
   const passwordHint = document.getElementById('cfgPasswordHint').value.trim();
+  const defaultLessons = Array.from(pendingCfgDefaultLessons).sort((a,b)=>a-b);
 
-  if(!dailyGoal || dailyGoal<1 || !streakDays || streakDays<1 || !streakText || !finalText || tiers.length===0 || !grammarCap || grammarCap<1 || !password){
-    alert('請確認每個欄位都有正確填寫(數字要大於0,等級門檻至少一行,格式:星星數,稱號)');
+  if(!dailyGoal || dailyGoal<1 || !streakDays || streakDays<1 || !streakText || !finalText || tiers.length===0 || !grammarCap || grammarCap<1 || !password || defaultLessons.length===0){
+    alert('請確認每個欄位都有正確填寫(數字要大於0,等級門檻至少一行,格式:星星數,稱號,複習範圍預設至少選一課)');
     return;
   }
-  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, grammarStarCap: grammarCap, parentPassword: password, passwordHint: passwordHint };
+  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, grammarStarCap: grammarCap, parentPassword: password, passwordHint: passwordHint, defaultLessons: defaultLessons };
   persistConfig();
   closeMasterPanel();
   refreshStatsBar();
@@ -1574,8 +1678,7 @@ function hasWords(n){ return getLessonWords(n).length > 0; }
 
 let selectedLessons = new Set();
 function initSelection(){
-  selectedLessons = new Set();
-  for(let n=1;n<=TOTAL_LESSONS;n++){ if(hasWords(n)) selectedLessons.add(n); }
+  selectedLessons = new Set(Array.isArray(config.defaultLessons) ? config.defaultLessons : []);
 }
 
 function refreshStatsBar(){
