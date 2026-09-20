@@ -645,7 +645,7 @@
   <!-- GRAMMAR -->
   <section class="screen" id="screen-grammar" hidden>
     <button class="backbtn" onclick="goHome()">← 回首頁</button>
-    <div class="chiprow" id="grammarChips"></div>
+    <div class="range-info" id="grammarRangeInfo"></div>
     <div class="actbar">
       <div class="dots" id="grammarDots"></div>
       <div class="score-live"><span id="grammarScore">0</span> / <span id="grammarTotal">8</span> 答對</div>
@@ -667,6 +667,21 @@
       <button class="ghost-btn" onclick="closeResult()">回首頁</button>
       <button class="ghost-btn" id="resultExtraBtn" hidden>🔁 重考錯題</button>
       <button class="primary-btn" id="resultRetry">再玩一次</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="grammarModeOverlay" hidden>
+  <div class="result-card wide">
+    <h2 style="text-align:center;margin-bottom:16px;">🧩 文法練習設定</h2>
+    <label class="field-label">選擇範圍</label>
+    <div class="chiprow" id="grammarRangeRow"></div>
+    <label class="field-label">選擇文法類型(可不選,預設全部類型)</label>
+    <div class="chiprow" id="grammarTypeRow"></div>
+    <p id="grammarModeWarning" style="display:none;color:var(--coral-deep);font-size:12.5px;margin:-4px 0 8px;">⚠️ 這個組合還沒有題目,換一個範圍或類型試試</p>
+    <div class="result-actions">
+      <button class="ghost-btn" onclick="closeGrammarMode()">取消</button>
+      <button class="primary-btn" onclick="confirmGrammarStart()">開始練習</button>
     </div>
   </div>
 </div>
@@ -944,83 +959,94 @@ const GRAMMAR_RANGES = [
   {key:'final', label:'期末範圍', icon:'🎓'},
 ];
 
+const GRAMMAR_TYPES = [
+  {key:'past_tense', label:'過去式', icon:'🕰️'},
+  {key:'did_question', label:'Did問句', icon:'❓'},
+  {key:'there_was_were', label:'Was/Were there', icon:'📍'},
+  {key:'comparative', label:'比較級', icon:'⚖️'},
+  {key:'modal', label:'情態動詞', icon:'🚫'},
+  {key:'preposition', label:'介系詞', icon:'🧭'},
+  {key:'used_to', label:'used to', icon:'🔁'},
+  {key:'be_past', label:'be動詞過去式', icon:'🧩'},
+  {key:'adjective', label:'形容詞選字', icon:'🙂'},
+];
+
 const GRAMMAR = [
-  {"range":"midterm","s":"Yesterday, I ___ (play) soccer with my friends.","o":["play","plays","played","playing"],"a":2,"e":"規則動詞過去式直接加「ed」→ play → played。"},
-  {"range":"midterm","s":"She ___ (walk) to school every morning last week.","o":["walk","walks","walked","walking"],"a":2,"e":"過去發生的動作要用過去式,walk 加「ed」→ walked。"},
-  {"range":"midterm","s":"The bus ___ (stop) at the corner yesterday.","o":["stop","stops","stopped","stopping"],"a":2,"e":"stop 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ stopped。"},
-  {"range":"midterm","s":"It ___ (rain) a lot last month.","o":["rain","rains","rained","raining"],"a":2,"e":"規則動詞過去式直接加「ed」→ rain → rained。"},
-  {"range":"midterm","s":"My brother ___ (finish) his homework two hours ago.","o":["finish","finishes","finished","finishing"],"a":2,"e":"規則動詞過去式加「ed」→ finish → finished。"},
-  {"range":"midterm","s":"We ___ (watch) a movie last night.","o":["watch","watches","watched","watching"],"a":2,"e":"watch 是規則動詞,過去式加「ed」→ watched。"},
-  {"range":"midterm","s":"She ___ (study) math every day last semester.","o":["study","studys","studied","studying"],"a":2,"e":"study 結尾是「子音+y」,過去式要把 y 改成 i 再加「ed」→ studied。"},
-  {"range":"midterm","s":"He ___ (carry) the heavy bag to school yesterday.","o":["carry","carrys","carried","carrying"],"a":2,"e":"carry 結尾是「子音+y」,過去式要去 y 加「ied」→ carried。"},
-  {"range":"midterm","s":"The rabbit ___ (hop) across the grass a moment ago.","o":["hop","hops","hopped","hopping"],"a":2,"e":"hop 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ hopped。"},
-  {"range":"midterm","s":"Did you ___ (close) the window before you left?","o":["close","closes","closed","closing"],"a":0,"e":"Did 開頭的問句,後面動詞要用「原形」,不能加 ed,所以是 close。"},
-  {"range":"midterm","s":"Did your mom ___ (clean) the house yesterday?","o":["clean","cleans","cleaned","cleaning"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 cleaned。"},
-  {"range":"midterm","s":"I ___ (chat) with my friend online last night.","o":["chat","chats","chatted","chatting"],"a":2,"e":"chat 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ chatted。"},
-  {"range":"midterm","s":"They ___ (plan) a trip to the mountains last week.","o":["plan","plans","planned","planning"],"a":2,"e":"plan 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ planned。"},
-  {"range":"midterm","s":"The baby ___ (cry) loudly last night.","o":["cry","crys","cried","crying"],"a":2,"e":"cry 結尾是「子音+y」,過去式要去 y 加「ied」→ cried。"},
-  {"range":"midterm","s":"Did the team ___ (practice) before the game yesterday?","o":["practice","practices","practiced","practicing"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 practiced。"},
-  {"range":"midterm","s":"Did you ___ (eat) breakfast this morning?","o":["eat","eats","ate","eaten"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 ate。"},
-  {"range":"midterm","s":"I ___ (eat) a big breakfast this morning.","o":["eat","eats","ate","eaten"],"a":2,"e":"eat 是不規則動詞,過去式是 eat → ate。"},
-  {"range":"midterm","s":"He ___ (ride) his bicycle to school yesterday.","o":["ride","rides","rode","riding"],"a":2,"e":"ride 是不規則動詞,過去式是 ride → rode。"},
-  {"range":"midterm","s":"I ___ (drink) milk this morning.","o":["drink","drinks","drank","drunk"],"a":2,"e":"drink 是不規則動詞,過去式是 drink → drank。"},
-  {"range":"midterm","s":"My mother ___ (buy) new shoes last week.","o":["buy","buys","bought","buying"],"a":2,"e":"buy 是不規則動詞,過去式是 buy → bought。"},
-  {"range":"midterm","s":"Our teacher ___ (teach) us grammar yesterday.","o":["teach","teaches","taught","teaching"],"a":2,"e":"teach 是不規則動詞,過去式是 teach → taught。"},
-  {"range":"midterm","s":"The cat ___ (catch) the mouse last night.","o":["catch","catches","caught","catching"],"a":2,"e":"catch 是不規則動詞,過去式是 catch → caught。"},
-  {"range":"midterm","s":"Did you ___ (bring) an umbrella to school yesterday?","o":["bring","brings","brought","bringing"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 brought。"},
-  {"range":"midterm","s":"We ___ (meet) at the park last Sunday.","o":["meet","meets","met","meeting"],"a":2,"e":"meet 是不規則動詞,過去式是 meet → met。"},
-  {"range":"midterm","s":"The children ___ (see) a waterfall on their trip.","o":["see","sees","saw","seen"],"a":2,"e":"see 是不規則動詞,過去式是 see → saw。"},
-  {"range":"midterm","s":"I ___ (tell) my mom about the test last night.","o":["tell","tells","told","telling"],"a":2,"e":"tell 是不規則動詞,過去式是 tell → told。"},
-  {"range":"midterm","s":"She ___ (write) a letter to her friend yesterday.","o":["write","writes","wrote","written"],"a":2,"e":"write 是不規則動詞,過去式是 write → wrote。"},
-  {"range":"midterm","s":"They ___ (sing) a song at the party last night.","o":["sing","sings","sang","sung"],"a":2,"e":"sing 是不規則動詞,過去式是 sing → sang。"},
-  {"range":"midterm","s":"My brother ___ (break) the vase this morning.","o":["break","breaks","broke","broken"],"a":2,"e":"break 是不規則動詞,過去式是 break → broke。"},
-  {"range":"midterm","s":"The kids ___ (swim) in the lake last summer.","o":["swim","swims","swam","swimming"],"a":2,"e":"swim 是不規則動詞,過去式是 swim → swam。"},
-  {"range":"midterm","s":"Did you ___ (forget) your lunch box today?","o":["forget","forgets","forgot","forgetting"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 forgot。"},
-  {"range":"midterm","s":"She ___ (take) the bus to school yesterday.","o":["take","takes","took","taking"],"a":2,"e":"take 是不規則動詞,過去式是 take → took。"},
-  {"range":"midterm","s":"___ there a fountain in the park a long time ago?","o":["Was","Is","Were","Did"],"a":0,"e":"fountain 是單數,問句要用「Was there」。"},
-  {"range":"midterm","s":"___ there many tall buildings along the river a hundred years ago?","o":["Was","Is","Were","Did"],"a":2,"e":"buildings 是複數,問句要用「Were there」。"},
-  {"range":"midterm","s":"Were there ___ flowers in the garden?","o":["some","any","a","the"],"a":1,"e":"疑問句裡通常用「any」,不是「some」。"},
-  {"range":"midterm","s":"Yes, there were ___ flowers in the garden.","o":["some","any","a","an"],"a":0,"e":"肯定句裡要用「some」,不是「any」。"},
-  {"range":"midterm","s":"Was there ___ litter on the path?","o":["some","any","many","much"],"a":1,"e":"否定句/疑問句要用「any」,不是「some」。"},
-  {"range":"midterm","s":"No, there wasn't ___ litter on the path.","o":["some","any","a","an"],"a":1,"e":"否定句要用「any」,不能用「some」。"},
-  {"range":"midterm","s":"___ there a shopping mall in this town ten years ago?","o":["Was","Were","Is","Are"],"a":0,"e":"shopping mall 是單數,問句要用「Was there」。"},
-  {"range":"midterm","s":"___ there any settlers near the river long ago?","o":["Was","Were","Is","Did"],"a":1,"e":"settlers 是複數,問句要用「Were there」。"},
-  {"range":"midterm","s":"___ there any motorcycles on the bridge?","o":["Was","Is","Were","Did"],"a":2,"e":"motorcycles 是複數,問句要用「Were there」。"},
-  {"range":"midterm","s":"Was there a train station in Hsinchu five years ago? Yes, there ___ a train station.","o":["was","is","were","are"],"a":0,"e":"train station 是單數,回答要用「was」。"},
-  {"range":"midterm","s":"The ocean is ___ than the lake. (deep)","o":["deep","deeper","deepest","more deep"],"a":1,"e":"形容詞比較級,deep 加「er」→ deeper。"},
-  {"range":"midterm","s":"This mountain is ___ than that one. (high)","o":["high","higher","highest","more high"],"a":1,"e":"形容詞比較級,high 加「er」→ higher。"},
-  {"range":"midterm","s":"A river is usually ___ than a path. (wide)","o":["wide","wider","widest","more wide"],"a":1,"e":"形容詞比較級,wide 加「er」→ wider。"},
-  {"range":"midterm","s":"This bridge is ___ than that bridge. (long)","o":["long","longer","longest","more long"],"a":1,"e":"形容詞比較級,long 加「er」→ longer。"},
-  {"range":"midterm","s":"This temple is ___ than that building. (old)","o":["old","older","oldest","more old"],"a":1,"e":"形容詞比較級,old 加「er」→ older。"},
-  {"range":"midterm","s":"The waterfall was ___ than we expected. (beautiful)","o":["beautiful","beautifuler","more beautiful","most beautiful"],"a":2,"e":"beautiful 是長形容詞,比較級要在前面加「more」,不能加「er」。"},
-  {"range":"midterm","s":"This lake is the ___ in the country. (deep)","o":["deep","deeper","deepest","more deep"],"a":2,"e":"最高級要用「the + 形容詞est」→ the deepest。"},
-  {"range":"midterm","s":"This mountain is the ___ in the country. (high)","o":["high","higher","highest","more high"],"a":2,"e":"最高級要用「the + 形容詞est」→ the highest。"},
-  {"range":"midterm","s":"A skateboard is ___ than a motorcycle. (small)","o":["small","smaller","smallest","more small"],"a":1,"e":"形容詞比較級,small 加「er」→ smaller。"},
-  {"range":"midterm","s":"An elephant is ___ than a cheetah. (big)","o":["big","bigger","biggest","more big"],"a":1,"e":"big 結尾是「子音+母音+子音」,比較級要重複最後一個字母再加「er」→ bigger。"},
-  {"range":"midterm","s":"You ___ swim here. The ocean is very dangerous.","o":["must","mustn't","don't","aren't"],"a":1,"e":"危險的事要用「mustn't」表示禁止。"},
-  {"range":"midterm","s":"You ___ be quiet. The baby is sleeping.","o":["must","mustn't","don't","isn't"],"a":0,"e":"要求別人做某件事用「must」。"},
-  {"range":"midterm","s":"You ___ do your homework. Then you can play.","o":["must","mustn't","don't","didn't"],"a":0,"e":"表示應該做的事用「must」。"},
-  {"range":"midterm","s":"You ___ pick the flowers in the park.","o":["must","mustn't","don't","can"],"a":1,"e":"禁止的行為要用「mustn't」。"},
-  {"range":"midterm","s":"You ___ throw litter on the ground. Use the garbage can.","o":["must","mustn't","don't","isn't"],"a":1,"e":"禁止亂丟垃圾要用「mustn't」。"},
-  {"range":"midterm","s":"My classmates and I ___ run in the hallway.","o":["must","mustn't","don't","doesn't"],"a":1,"e":"禁止在走廊奔跑,用「mustn't」。"},
-  {"range":"midterm","s":"The students ___ play computer games in class.","o":["must","mustn't","don't","isn't"],"a":1,"e":"禁止在課堂上做的事用「mustn't」。"},
-  {"range":"midterm","s":"The path goes ___ the river.","o":["along","between","through","inside"],"a":0,"e":"沿著河邊走要用「along」。"},
-  {"range":"midterm","s":"The teacher stood ___ Amy and Max.","o":["along","between","through","inside"],"a":1,"e":"在兩者之間要用「between」。"},
-  {"range":"midterm","s":"The ferry sailed ___ the tunnel.","o":["along","between","through","inside"],"a":2,"e":"穿過隧道要用「through」。"},
-  {"range":"midterm","s":"There is a fountain ___ the park.","o":["in the middle of","at the top of","between","along"],"a":0,"e":"在中間要用「in the middle of」。"},
-  {"range":"midterm","s":"The flag is ___ the mountain.","o":["in the middle of","at the top of","between","inside"],"a":1,"e":"在最上面要用「at the top of」。"},
-  {"range":"midterm","s":"The dog is ___ the house.","o":["along","between","through","inside"],"a":3,"e":"在裡面要用「inside」。"},
-  {"range":"midterm","s":"A motorcycle is ___ the bus and the taxi.","o":["along","between","through","inside"],"a":1,"e":"在兩者中間要用「between」。"},
-  {"range":"midterm","s":"My mom ___ to live in Australia.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
-  {"range":"midterm","s":"Did your teacher ___ to live in Jordan? Yes, he did.","o":["use","used","uses","using"],"a":0,"e":"疑問句「Did...use to...?」裡動詞要用原形 use,不能加 d。"},
-  {"range":"midterm","s":"My parents ___ to study English when they were young.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
-  {"range":"midterm","s":"Tim ___ to go running every day.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
-  {"range":"midterm","s":"Holly didn't ___ to go surfing at the beach.","o":["use","used","uses","using"],"a":0,"e":"didn't 後面動詞要用原形,是「use to」不是「used to」。"},
-  {"range":"midterm","s":"Dad ___ handsome when he was young.","o":["is","was","were","be"],"a":1,"e":"描述過去的事要用過去式 be動詞,單數主詞用「was」。"},
-  {"range":"midterm","s":"My mom and dad ___ generous when I was little.","o":["is","was","were","be"],"a":2,"e":"複數主詞 mom and dad 要用「were」。"},
-  {"range":"midterm","s":"Sometimes, I ___ shy in class.","o":["am","is","are","was"],"a":0,"e":"現在的習慣性描述用現在式 be動詞,主詞是 I 要用「am」。"},
-  {"range":"midterm","s":"It is important to be ___. You should always try to help others.","o":["worried","generous","shy","relaxed"],"a":1,"e":"樂於幫助別人是「慷慨的」→ generous。"},
-  {"range":"midterm","s":"My sister was very nervous, but everyone else was ___.","o":["worried","relaxed","shy","cheerful"],"a":1,"e":"跟緊張相反的感覺是「放鬆的」→ relaxed。"}
+  {"range":"midterm","type":"past_tense","s":"Yesterday, I ___ (play) soccer with my friends.","o":["play","plays","played","playing"],"a":2,"e":"規則動詞過去式直接加「ed」→ play → played。"},
+  {"range":"midterm","type":"past_tense","s":"She ___ (walk) to school every morning last week.","o":["walk","walks","walked","walking"],"a":2,"e":"過去發生的動作要用過去式,walk 加「ed」→ walked。"},
+  {"range":"midterm","type":"past_tense","s":"The bus ___ (stop) at the corner yesterday.","o":["stop","stops","stopped","stopping"],"a":2,"e":"stop 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ stopped。"},
+  {"range":"midterm","type":"past_tense","s":"It ___ (rain) a lot last month.","o":["rain","rains","rained","raining"],"a":2,"e":"規則動詞過去式直接加「ed」→ rain → rained。"},
+  {"range":"midterm","type":"past_tense","s":"My brother ___ (finish) his homework two hours ago.","o":["finish","finishes","finished","finishing"],"a":2,"e":"規則動詞過去式加「ed」→ finish → finished。"},
+  {"range":"midterm","type":"past_tense","s":"We ___ (watch) a movie last night.","o":["watch","watches","watched","watching"],"a":2,"e":"watch 是規則動詞,過去式加「ed」→ watched。"},
+  {"range":"midterm","type":"past_tense","s":"She ___ (study) math every day last semester.","o":["study","studys","studied","studying"],"a":2,"e":"study 結尾是「子音+y」,過去式要把 y 改成 i 再加「ed」→ studied。"},
+  {"range":"midterm","type":"past_tense","s":"He ___ (carry) the heavy bag to school yesterday.","o":["carry","carrys","carried","carrying"],"a":2,"e":"carry 結尾是「子音+y」,過去式要去 y 加「ied」→ carried。"},
+  {"range":"midterm","type":"past_tense","s":"The rabbit ___ (hop) across the grass a moment ago.","o":["hop","hops","hopped","hopping"],"a":2,"e":"hop 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ hopped。"},
+  {"range":"midterm","type":"did_question","s":"Did you ___ (close) the window before you left?","o":["close","closes","closed","closing"],"a":0,"e":"Did 開頭的問句,後面動詞要用「原形」,不能加 ed,所以是 close。"},
+  {"range":"midterm","type":"did_question","s":"Did your mom ___ (clean) the house yesterday?","o":["clean","cleans","cleaned","cleaning"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 cleaned。"},
+  {"range":"midterm","type":"past_tense","s":"I ___ (chat) with my friend online last night.","o":["chat","chats","chatted","chatting"],"a":2,"e":"chat 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ chatted。"},
+  {"range":"midterm","type":"past_tense","s":"They ___ (plan) a trip to the mountains last week.","o":["plan","plans","planned","planning"],"a":2,"e":"plan 結尾是「子音+母音+子音」,過去式要重複最後一個字母再加「ed」→ planned。"},
+  {"range":"midterm","type":"past_tense","s":"The baby ___ (cry) loudly last night.","o":["cry","crys","cried","crying"],"a":2,"e":"cry 結尾是「子音+y」,過去式要去 y 加「ied」→ cried。"},
+  {"range":"midterm","type":"did_question","s":"Did the team ___ (practice) before the game yesterday?","o":["practice","practices","practiced","practicing"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 practiced。"},
+  {"range":"midterm","type":"did_question","s":"Did you ___ (eat) breakfast this morning?","o":["eat","eats","ate","eaten"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 ate。"},
+  {"range":"midterm","type":"past_tense","s":"I ___ (eat) a big breakfast this morning.","o":["eat","eats","ate","eaten"],"a":2,"e":"eat 是不規則動詞,過去式是 eat → ate。"},
+  {"range":"midterm","type":"past_tense","s":"He ___ (ride) his bicycle to school yesterday.","o":["ride","rides","rode","riding"],"a":2,"e":"ride 是不規則動詞,過去式是 ride → rode。"},
+  {"range":"midterm","type":"past_tense","s":"I ___ (drink) milk this morning.","o":["drink","drinks","drank","drunk"],"a":2,"e":"drink 是不規則動詞,過去式是 drink → drank。"},
+  {"range":"midterm","type":"past_tense","s":"My mother ___ (buy) new shoes last week.","o":["buy","buys","bought","buying"],"a":2,"e":"buy 是不規則動詞,過去式是 buy → bought。"},
+  {"range":"midterm","type":"past_tense","s":"Our teacher ___ (teach) us grammar yesterday.","o":["teach","teaches","taught","teaching"],"a":2,"e":"teach 是不規則動詞,過去式是 teach → taught。"},
+  {"range":"midterm","type":"past_tense","s":"The cat ___ (catch) the mouse last night.","o":["catch","catches","caught","catching"],"a":2,"e":"catch 是不規則動詞,過去式是 catch → caught。"},
+  {"range":"midterm","type":"did_question","s":"Did you ___ (bring) an umbrella to school yesterday?","o":["bring","brings","brought","bringing"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 brought。"},
+  {"range":"midterm","type":"past_tense","s":"We ___ (meet) at the park last Sunday.","o":["meet","meets","met","meeting"],"a":2,"e":"meet 是不規則動詞,過去式是 meet → met。"},
+  {"range":"midterm","type":"past_tense","s":"The children ___ (see) a waterfall on their trip.","o":["see","sees","saw","seen"],"a":2,"e":"see 是不規則動詞,過去式是 see → saw。"},
+  {"range":"midterm","type":"past_tense","s":"I ___ (tell) my mom about the test last night.","o":["tell","tells","told","telling"],"a":2,"e":"tell 是不規則動詞,過去式是 tell → told。"},
+  {"range":"midterm","type":"past_tense","s":"She ___ (write) a letter to her friend yesterday.","o":["write","writes","wrote","written"],"a":2,"e":"write 是不規則動詞,過去式是 write → wrote。"},
+  {"range":"midterm","type":"past_tense","s":"They ___ (sing) a song at the party last night.","o":["sing","sings","sang","sung"],"a":2,"e":"sing 是不規則動詞,過去式是 sing → sang。"},
+  {"range":"midterm","type":"past_tense","s":"My brother ___ (break) the vase this morning.","o":["break","breaks","broke","broken"],"a":2,"e":"break 是不規則動詞,過去式是 break → broke。"},
+  {"range":"midterm","type":"past_tense","s":"The kids ___ (swim) in the lake last summer.","o":["swim","swims","swam","swimming"],"a":2,"e":"swim 是不規則動詞,過去式是 swim → swam。"},
+  {"range":"midterm","type":"did_question","s":"Did you ___ (forget) your lunch box today?","o":["forget","forgets","forgot","forgetting"],"a":0,"e":"Did 問句裡動詞要用原形,不能寫成 forgot。"},
+  {"range":"midterm","type":"past_tense","s":"She ___ (take) the bus to school yesterday.","o":["take","takes","took","taking"],"a":2,"e":"take 是不規則動詞,過去式是 take → took。"},
+  {"range":"midterm","type":"there_was_were","s":"___ there a fountain in the park a long time ago?","o":["Was","Is","Were","Did"],"a":0,"e":"fountain 是單數,問句要用「Was there」。"},
+  {"range":"midterm","type":"there_was_were","s":"___ there many tall buildings along the river a hundred years ago?","o":["Was","Is","Were","Did"],"a":2,"e":"buildings 是複數,問句要用「Were there」。"},
+  {"range":"midterm","type":"there_was_were","s":"Were there ___ flowers in the garden?","o":["some","any","a","the"],"a":1,"e":"疑問句裡通常用「any」,不是「some」。"},
+  {"range":"midterm","type":"there_was_were","s":"Yes, there were ___ flowers in the garden.","o":["some","any","a","an"],"a":0,"e":"肯定句裡要用「some」,不是「any」。"},
+  {"range":"midterm","type":"there_was_were","s":"Was there ___ litter on the path?","o":["some","any","many","much"],"a":1,"e":"否定句/疑問句要用「any」,不是「some」。"},
+  {"range":"midterm","type":"there_was_were","s":"No, there wasn't ___ litter on the path.","o":["some","any","a","an"],"a":1,"e":"否定句要用「any」,不能用「some」。"},
+  {"range":"midterm","type":"there_was_were","s":"___ there a shopping mall in this town ten years ago?","o":["Was","Were","Is","Are"],"a":0,"e":"shopping mall 是單數,問句要用「Was there」。"},
+  {"range":"midterm","type":"there_was_were","s":"___ there any settlers near the river long ago?","o":["Was","Were","Is","Did"],"a":1,"e":"settlers 是複數,問句要用「Were there」。"},
+  {"range":"midterm","type":"there_was_were","s":"___ there any motorcycles on the bridge?","o":["Was","Is","Were","Did"],"a":2,"e":"motorcycles 是複數,問句要用「Were there」。"},
+  {"range":"midterm","type":"there_was_were","s":"Was there a train station in Hsinchu five years ago? Yes, there ___ a train station.","o":["was","is","were","are"],"a":0,"e":"train station 是單數,回答要用「was」。"},
+  {"range":"midterm","type":"comparative","s":"The ocean is ___ than the lake. (deep)","o":["deep","deeper","deepest","more deep"],"a":1,"e":"形容詞比較級,deep 加「er」→ deeper。"},
+  {"range":"midterm","type":"comparative","s":"This mountain is ___ than that one. (high)","o":["high","higher","highest","more high"],"a":1,"e":"形容詞比較級,high 加「er」→ higher。"},
+  {"range":"midterm","type":"comparative","s":"A river is usually ___ than a path. (wide)","o":["wide","wider","widest","more wide"],"a":1,"e":"形容詞比較級,wide 加「er」→ wider。"},
+  {"range":"midterm","type":"comparative","s":"This bridge is ___ than that bridge. (long)","o":["long","longer","longest","more long"],"a":1,"e":"形容詞比較級,long 加「er」→ longer。"},
+  {"range":"midterm","type":"comparative","s":"This temple is ___ than that building. (old)","o":["old","older","oldest","more old"],"a":1,"e":"形容詞比較級,old 加「er」→ older。"},
+  {"range":"midterm","type":"comparative","s":"The waterfall was ___ than we expected. (beautiful)","o":["beautiful","beautifuler","more beautiful","most beautiful"],"a":2,"e":"beautiful 是長形容詞,比較級要在前面加「more」,不能加「er」。"},
+  {"range":"midterm","type":"comparative","s":"This lake is the ___ in the country. (deep)","o":["deep","deeper","deepest","more deep"],"a":2,"e":"最高級要用「the + 形容詞est」→ the deepest。"},
+  {"range":"midterm","type":"comparative","s":"This mountain is the ___ in the country. (high)","o":["high","higher","highest","more high"],"a":2,"e":"最高級要用「the + 形容詞est」→ the highest。"},
+  {"range":"midterm","type":"comparative","s":"A skateboard is ___ than a motorcycle. (small)","o":["small","smaller","smallest","more small"],"a":1,"e":"形容詞比較級,small 加「er」→ smaller。"},
+  {"range":"midterm","type":"comparative","s":"An elephant is ___ than a cheetah. (big)","o":["big","bigger","biggest","more big"],"a":1,"e":"big 結尾是「子音+母音+子音」,比較級要重複最後一個字母再加「er」→ bigger。"},
+  {"range":"midterm","type":"modal","s":"You ___ swim here. The ocean is very dangerous.","o":["must","mustn't","don't","aren't"],"a":1,"e":"危險的事要用「mustn't」表示禁止。"},
+  {"range":"midterm","type":"modal","s":"You ___ be quiet. The baby is sleeping.","o":["must","mustn't","don't","isn't"],"a":0,"e":"要求別人做某件事用「must」。"},
+  {"range":"midterm","type":"modal","s":"You ___ do your homework. Then you can play.","o":["must","mustn't","don't","didn't"],"a":0,"e":"表示應該做的事用「must」。"},
+  {"range":"midterm","type":"modal","s":"You ___ pick the flowers in the park.","o":["must","mustn't","don't","can"],"a":1,"e":"禁止的行為要用「mustn't」。"},
+  {"range":"midterm","type":"modal","s":"You ___ throw litter on the ground. Use the garbage can.","o":["must","mustn't","don't","isn't"],"a":1,"e":"禁止亂丟垃圾要用「mustn't」。"},
+  {"range":"midterm","type":"modal","s":"My classmates and I ___ run in the hallway.","o":["must","mustn't","don't","doesn't"],"a":1,"e":"禁止在走廊奔跑,用「mustn't」。"},
+  {"range":"midterm","type":"modal","s":"The students ___ play computer games in class.","o":["must","mustn't","don't","isn't"],"a":1,"e":"禁止在課堂上做的事用「mustn't」。"},
+  {"range":"midterm","type":"preposition","s":"The path goes ___ the river.","o":["along","between","through","inside"],"a":0,"e":"沿著河邊走要用「along」。"},
+  {"range":"midterm","type":"preposition","s":"The teacher stood ___ Amy and Max.","o":["along","between","through","inside"],"a":1,"e":"在兩者之間要用「between」。"},
+  {"range":"midterm","type":"preposition","s":"The ferry sailed ___ the tunnel.","o":["along","between","through","inside"],"a":2,"e":"穿過隧道要用「through」。"},
+  {"range":"midterm","type":"preposition","s":"There is a fountain ___ the park.","o":["in the middle of","at the top of","between","along"],"a":0,"e":"在中間要用「in the middle of」。"},
+  {"range":"midterm","type":"preposition","s":"The flag is ___ the mountain.","o":["in the middle of","at the top of","between","inside"],"a":1,"e":"在最上面要用「at the top of」。"},
+  {"range":"midterm","type":"preposition","s":"The dog is ___ the house.","o":["along","between","through","inside"],"a":3,"e":"在裡面要用「inside」。"},
+  {"range":"midterm","type":"preposition","s":"A motorcycle is ___ the bus and the taxi.","o":["along","between","through","inside"],"a":1,"e":"在兩者中間要用「between」。"},
+  {"range":"midterm","type":"used_to","s":"My mom ___ to live in Australia.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
+  {"range":"midterm","type":"used_to","s":"Did your teacher ___ to live in Jordan? Yes, he did.","o":["use","used","uses","using"],"a":0,"e":"疑問句「Did...use to...?」裡動詞要用原形 use,不能加 d。"},
+  {"range":"midterm","type":"used_to","s":"My parents ___ to study English when they were young.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
+  {"range":"midterm","type":"used_to","s":"Tim ___ to go running every day.","o":["use","used","uses","using"],"a":1,"e":"描述過去的習慣要用「used to」+原形動詞。"},
+  {"range":"midterm","type":"used_to","s":"Holly didn't ___ to go surfing at the beach.","o":["use","used","uses","using"],"a":0,"e":"didn't 後面動詞要用原形,是「use to」不是「used to」。"},
+  {"range":"midterm","type":"be_past","s":"Dad ___ handsome when he was young.","o":["is","was","were","be"],"a":1,"e":"描述過去的事要用過去式 be動詞,單數主詞用「was」。"},
+  {"range":"midterm","type":"be_past","s":"My mom and dad ___ generous when I was little.","o":["is","was","were","be"],"a":2,"e":"複數主詞 mom and dad 要用「were」。"},
+  {"range":"midterm","type":"adjective","s":"It is important to be ___. You should always try to help others.","o":["worried","generous","shy","relaxed"],"a":1,"e":"樂於幫助別人是「慷慨的」→ generous。"},
+  {"range":"midterm","type":"adjective","s":"My sister was very nervous, but everyone else was ___.","o":["worried","relaxed","shy","cheerful"],"a":1,"e":"跟緊張相反的感覺是「放鬆的」→ relaxed。"}
 ];
 
 /* ================= REWARD CONFIG (editable via Parent-mode admin panel) ================= */
@@ -1698,7 +1724,7 @@ function showScreen(name){
   });
 }
 function openActivity(name){
-  if(name === 'grammar'){ startGrammar('all'); return; }
+  if(name === 'grammar'){ openGrammarMode(); return; }
   if(getPool().length === 0){
     document.getElementById('selectionSummary').textContent = '⚠️ 請先在上面選擇至少一課,才能開始複習喔!';
     document.getElementById('selectionSummary').style.color = 'var(--coral-deep)';
@@ -2190,15 +2216,50 @@ function finishSpell(){
 }
 
 /* ================= GRAMMAR ================= */
-let grammarRange='all', grammarItems=[], grammarIdx=0, grammarResults=[], grammarScore=0;
-function startGrammar(rangeKey){
-  grammarRange = rangeKey;
-  renderChips(document.getElementById('grammarChips'), GRAMMAR_RANGES, grammarRange, (k)=>{ startGrammar(k); });
-  const pool = rangeKey==='all' ? GRAMMAR : GRAMMAR.filter(g=>g.range===rangeKey);
+let pendingGrammarRange='all', pendingGrammarType='all';
+let grammarRange='all', grammarType='all', grammarItems=[], grammarIdx=0, grammarResults=[], grammarScore=0;
+function filterGrammarPool(rangeKey, typeKey){
+  let pool = GRAMMAR;
+  if(rangeKey && rangeKey !== 'all') pool = pool.filter(g=>g.range===rangeKey);
+  if(typeKey && typeKey !== 'all') pool = pool.filter(g=>g.type===typeKey);
+  return pool;
+}
+function openGrammarMode(){
+  pendingGrammarRange = 'all';
+  pendingGrammarType = 'all';
+  document.getElementById('grammarModeWarning').style.display = 'none';
+  renderGrammarModeChips();
+  document.getElementById('grammarModeOverlay').hidden = false;
+}
+function renderGrammarModeChips(){
+  renderChips(document.getElementById('grammarRangeRow'), GRAMMAR_RANGES, pendingGrammarRange, (k)=>{ pendingGrammarRange = k; renderGrammarModeChips(); });
+  renderChips(document.getElementById('grammarTypeRow'), GRAMMAR_TYPES, pendingGrammarType, (k)=>{ pendingGrammarType = k; renderGrammarModeChips(); });
+}
+function closeGrammarMode(){ document.getElementById('grammarModeOverlay').hidden = true; }
+function confirmGrammarStart(){
+  if(filterGrammarPool(pendingGrammarRange, pendingGrammarType).length === 0){
+    document.getElementById('grammarModeWarning').style.display = 'block';
+    return;
+  }
+  closeGrammarMode();
+  startGrammar(pendingGrammarRange, pendingGrammarType);
+}
+function grammarRangeLabel(){
+  const rangeMeta = GRAMMAR_RANGES.find(r=>r.key===grammarRange);
+  const typeMeta = GRAMMAR_TYPES.find(t=>t.key===grammarType);
+  let label = '🧩 範圍:' + (rangeMeta ? rangeMeta.label : '全部混合');
+  if(typeMeta) label += ' · ' + typeMeta.icon + ' ' + typeMeta.label;
+  return label;
+}
+function startGrammar(rangeKey, typeKey){
+  grammarRange = rangeKey || 'all';
+  grammarType = typeKey || 'all';
+  const pool = filterGrammarPool(grammarRange, grammarType);
   grammarItems = pickN(pool, 8);
   grammarIdx = 0; grammarScore = 0;
   grammarResults = new Array(grammarItems.length).fill(null);
   document.getElementById('grammarTotal').textContent = grammarItems.length;
+  document.getElementById('grammarRangeInfo').textContent = grammarRangeLabel();
   showScreen('grammar');
   renderGrammar();
 }
@@ -2207,12 +2268,13 @@ function renderGrammar(){
   renderDots(document.getElementById('grammarDots'), grammarItems.length, grammarIdx, grammarResults);
   const item = grammarItems[grammarIdx];
   const rangeMeta = GRAMMAR_RANGES.find(r=>r.key===item.range);
+  const typeMeta = GRAMMAR_TYPES.find(t=>t.key===item.type);
 
   const card = document.getElementById('grammarCard');
   card.innerHTML = '';
   const topic = document.createElement('div');
   topic.className = 'qtopic';
-  topic.textContent = rangeMeta ? (rangeMeta.icon + ' ' + rangeMeta.label) : '';
+  topic.textContent = (rangeMeta ? (rangeMeta.icon + ' ' + rangeMeta.label) : '') + (typeMeta ? (' · ' + typeMeta.icon + ' ' + typeMeta.label) : '');
   card.appendChild(topic);
 
   const prompt = document.createElement('div');
@@ -2286,7 +2348,7 @@ function finishGrammar(){
     title: grammarScore===grammarItems.length ? '文法全對!好厲害!' : '完成文法練習!',
     scoreText: grammarScore + '/' + grammarItems.length,
     starsEarned: grammarScore,
-    onRetry: ()=>startGrammar(grammarRange)
+    onRetry: ()=>startGrammar(grammarRange, grammarType)
   });
 }
 
