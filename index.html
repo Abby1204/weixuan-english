@@ -2347,13 +2347,15 @@ function flashStep(dir){
 const FLASH_AUTO_MAX_ROUNDS = 3;
 let flashAutoPlayOn = false;
 let flashAutoQueue = [], flashAutoIdx = 0, flashAutoRound = 1;
-function speakSequence(parts, onDone){
+function speakSequence(parts, onDone, isCancelled){
   if(!('speechSynthesis' in window)){ onDone && onDone(); return; }
   let i = 0;
   function next(){
+    if(isCancelled && isCancelled()) return;
     if(i >= parts.length){ onDone && onDone(); return; }
     const p = parts[i++];
-    const advance = () => { if(p.gap) setTimeout(next, p.gap); else next(); };
+    if(p.onStart) p.onStart();
+    const advance = () => { if(isCancelled && isCancelled()) return; if(p.gap) setTimeout(next, p.gap); else next(); };
     try{
       const u = new SpeechSynthesisUtterance(p.text);
       u.lang = p.lang;
@@ -2385,6 +2387,8 @@ function stopFlashAuto(){
   if(btn){ btn.classList.remove('active'); btn.textContent = '🔁'; }
   const info = document.getElementById('flashAutoInfo');
   if(info) info.textContent = '';
+  const card = document.getElementById('flashCard');
+  if(card) card.classList.remove('flipped');
 }
 function playFlashAutoCurrent(){
   if(!flashAutoPlayOn || flashAutoQueue.length === 0){ stopFlashAuto(); return; }
@@ -2399,7 +2403,7 @@ function playFlashAutoCurrent(){
     {text:item.en, lang:'en-US', rate:0.85, gap:300},
     ...letterParts,
     {text:item.en, lang:'en-US', rate:0.85, gap:300},
-    {text:item.zh, lang:'zh-TW', rate:1}
+    {text:item.zh, lang:'zh-TW', rate:1, onStart:()=>{ document.getElementById('flashCard').classList.add('flipped'); }}
   ], ()=>{
     if(!flashAutoPlayOn) return;
     flashAutoSpeakTimer = setTimeout(()=>{
@@ -2418,7 +2422,7 @@ function playFlashAutoCurrent(){
       }
       playFlashAutoCurrent();
     }, 900);
-  });
+  }, () => !flashAutoPlayOn);
 }
 function setupFlashSwipe(){
   const el = document.getElementById('flashCard');
