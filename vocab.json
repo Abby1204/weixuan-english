@@ -1,0 +1,112 @@
+{
+  "courseLevel": "N7B",
+  "totalLessons": 18,
+  "lessons": {
+    "1": [
+      {"en":"lake","zh":"湖"},
+      {"en":"mountain","zh":"山"},
+      {"en":"waterfall","zh":"瀑布"},
+      {"en":"ocean","zh":"海洋"},
+      {"en":"wide","zh":"寬的(wide/wider/widest)"},
+      {"en":"deep","zh":"深的(deep/deeper/deepest)"},
+      {"en":"high","zh":"高的(high/higher/highest)"},
+      {"en":"quiz","zh":"小考"},
+      {"en":"animal","zh":"動物"},
+      {"en":"cheetah","zh":"印度豹"}
+    ],
+    "2": [
+      {"en":"building","zh":"建築物"},
+      {"en":"country","zh":"國家、鄉下"},
+      {"en":"bridge","zh":"橋"},
+      {"en":"river","zh":"河流"},
+      {"en":"old","zh":"老舊的"},
+      {"en":"long","zh":"(最)長(long/longer/longest)"},
+      {"en":"records","zh":"記錄、記載"},
+      {"en":"temples","zh":"寺廟"},
+      {"en":"surface","zh":"外觀、外表"},
+      {"en":"flow","zh":"流動"}
+    ],
+    "3": [
+      {"en":"café","zh":"咖啡廳"},
+      {"en":"library","zh":"圖書館"},
+      {"en":"shopping mall","zh":"購物中心"},
+      {"en":"sports center","zh":"運動中心"},
+      {"en":"movie theater","zh":"電影院"},
+      {"en":"swimming pool","zh":"游泳池"},
+      {"en":"concert","zh":"演唱會"},
+      {"en":"always","zh":"總是"},
+      {"en":"sometimes","zh":"有時候"},
+      {"en":"never","zh":"從不"}
+    ],
+    "4": [
+      {"en":"path","zh":"小徑、路線"},
+      {"en":"grass","zh":"草坪"},
+      {"en":"flowers","zh":"花"},
+      {"en":"garbage can","zh":"垃圾桶"},
+      {"en":"trees","zh":"樹"},
+      {"en":"playground","zh":"遊樂場"},
+      {"en":"fountain","zh":"泉水;噴泉"},
+      {"en":"litter","zh":"垃圾"},
+      {"en":"beautiful","zh":"漂亮的"},
+      {"en":"catch","zh":"接住、抓住"}
+    ],
+    "5": [
+      {"en":"shout","zh":"大叫、大吼"},
+      {"en":"chase","zh":"追逐"},
+      {"en":"catch","zh":"接住"},
+      {"en":"meet","zh":"遇見、碰見"},
+      {"en":"cross","zh":"橫越"},
+      {"en":"laugh","zh":"笑"},
+      {"en":"special","zh":"特別的"},
+      {"en":"river","zh":"河流"},
+      {"en":"water","zh":"水"},
+      {"en":"deeper","zh":"更深的"}
+    ],
+    "6": [
+      {"en":"ferry","zh":"渡輪"},
+      {"en":"bus","zh":"巴士"},
+      {"en":"helicopter","zh":"直升機"},
+      {"en":"motorcycle","zh":"摩托車"},
+      {"en":"plane","zh":"飛機"},
+      {"en":"taxi","zh":"計程車"},
+      {"en":"train","zh":"火車"},
+      {"en":"trolley","zh":"電車"},
+      {"en":"skateboard","zh":"滑板"},
+      {"en":"photo","zh":"照片"}
+    ],
+    "7": [
+      {"en":"along","zh":"沿著"},
+      {"en":"through","zh":"通過"},
+      {"en":"in the middle of","zh":"在...中間"},
+      {"en":"at the top of","zh":"在...上面"},
+      {"en":"between","zh":"在...之間"},
+      {"en":"inside","zh":"內部、裡面"},
+      {"en":"America","zh":"美國"},
+      {"en":"England","zh":"英格蘭"},
+      {"en":"settlers","zh":"移居者"},
+      {"en":"Thanksgiving","zh":"感恩節"}
+    ],
+    "8": [
+      {"en":"worried","zh":"擔心的"},
+      {"en":"generous","zh":"慷慨的"},
+      {"en":"young","zh":"年輕的"},
+      {"en":"tall","zh":"高的"},
+      {"en":"handsome","zh":"英俊的"},
+      {"en":"pretty","zh":"漂亮的"},
+      {"en":"cheerful","zh":"興高采烈的"},
+      {"en":"shy","zh":"害羞的"},
+      {"en":"relaxed","zh":"放鬆的"},
+      {"en":"friendly","zh":"親切的"}
+    ],
+    "9": [],
+    "10": [],
+    "11": [],
+    "12": [],
+    "13": [],
+    "14": [],
+    "15": [],
+    "16": [],
+    "17": [],
+    "18": []
+  }
+}

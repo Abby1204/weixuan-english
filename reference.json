@@ -1,0 +1,241 @@
+{
+  "decks": [
+    {
+      "id": "irregular_verbs_helper",
+      "icon": "🔤",
+      "title": "Irregular Verbs 過去式小幫手",
+      "colorTokens": [
+        "ok",
+        "sky",
+        "sun",
+        "pink",
+        "coral",
+        "lavender"
+      ],
+      "groups": [
+        {
+          "name": "Everyday Actions",
+          "pairs": [
+            [
+              "keep",
+              "kept"
+            ],
+            [
+              "buy",
+              "bought"
+            ],
+            [
+              "draw",
+              "drew"
+            ],
+            [
+              "fall",
+              "fell"
+            ],
+            [
+              "forget",
+              "forgot"
+            ],
+            [
+              "hit",
+              "hit"
+            ]
+          ]
+        },
+        {
+          "name": "People Around Us",
+          "pairs": [
+            [
+              "stand",
+              "stood"
+            ],
+            [
+              "teach",
+              "taught"
+            ],
+            [
+              "throw",
+              "threw"
+            ],
+            [
+              "cut",
+              "cut"
+            ],
+            [
+              "feel",
+              "felt"
+            ],
+            [
+              "hear",
+              "heard"
+            ]
+          ]
+        },
+        {
+          "name": "Learning & Thinking",
+          "pairs": [
+            [
+              "know",
+              "knew"
+            ],
+            [
+              "read",
+              "read(唸法不同,像\"red\")"
+            ],
+            [
+              "say",
+              "said"
+            ],
+            [
+              "sleep",
+              "slept"
+            ],
+            [
+              "fly",
+              "flew"
+            ],
+            [
+              "get",
+              "got"
+            ]
+          ]
+        },
+        {
+          "name": "Daily Activities",
+          "pairs": [
+            [
+              "swim",
+              "swam"
+            ],
+            [
+              "sing",
+              "sang"
+            ],
+            [
+              "sit",
+              "sat"
+            ],
+            [
+              "speak",
+              "spoke"
+            ],
+            [
+              "bring",
+              "brought"
+            ],
+            [
+              "write",
+              "wrote"
+            ]
+          ]
+        },
+        {
+          "name": "Helping Verbs & More",
+          "pairs": [
+            [
+              "do/does",
+              "did"
+            ],
+            [
+              "put",
+              "put"
+            ],
+            [
+              "have/has",
+              "had"
+            ],
+            [
+              "think",
+              "thought"
+            ],
+            [
+              "come",
+              "came"
+            ],
+            [
+              "meet",
+              "met"
+            ]
+          ]
+        },
+        {
+          "name": "Verbs in Action",
+          "pairs": [
+            [
+              "find",
+              "found"
+            ],
+            [
+              "wake",
+              "woke"
+            ],
+            [
+              "go",
+              "went"
+            ],
+            [
+              "eat",
+              "ate"
+            ],
+            [
+              "wear",
+              "wore"
+            ],
+            [
+              "see",
+              "saw"
+            ],
+            [
+              "build",
+              "built"
+            ],
+            [
+              "catch",
+              "caught"
+            ],
+            [
+              "give",
+              "gave"
+            ],
+            [
+              "leave",
+              "left"
+            ],
+            [
+              "make",
+              "made"
+            ],
+            [
+              "ride",
+              "rode"
+            ],
+            [
+              "run",
+              "ran"
+            ],
+            [
+              "feed",
+              "fed"
+            ],
+            [
+              "take",
+              "took"
+            ],
+            [
+              "tell",
+              "told"
+            ],
+            [
+              "hide",
+              "hid"
+            ]
+          ]
+        }
+      ],
+      "tip": {
+        "text": "Did / didn't + 原形動詞",
+        "example": "Did you drink milk? Yes, I drank milk."
+      }
+    }
+  ]
+}
