@@ -1006,6 +1006,10 @@
 /* ================= CONTENT DATA (loaded at runtime from vocab.json / grammar.json / reference.json) ================= */
 let TOTAL_LESSONS = 18;
 let DEFAULT_LESSONS = {};
+let EXCLUDED_LESSONS = new Set();
+function lessonNumberList(){
+  return Array.from({length:TOTAL_LESSONS}, (_,i)=>i+1).filter(n=>!EXCLUDED_LESSONS.has(n));
+}
 const GRAMMAR_RANGES = [
   {key:"midterm", label:"期中範圍", icon:"📝"},
   {key:"final", label:"期末範圍", icon:"🎓"},
@@ -1021,8 +1025,9 @@ async function loadContentData(){
     fetch("reference.json").then(r => r.json()),
   ]);
   TOTAL_LESSONS = vocab.totalLessons;
+  EXCLUDED_LESSONS = new Set(vocab.excludedLessons || []);
   DEFAULT_LESSONS = vocab.lessons;
-  for(let i=1;i<=TOTAL_LESSONS;i++){ if(!DEFAULT_LESSONS[i]) DEFAULT_LESSONS[i] = []; }
+  for(const i of lessonNumberList()){ if(!DEFAULT_LESSONS[i]) DEFAULT_LESSONS[i] = []; }
   GRAMMAR_TYPES = grammar.types;
   GRAMMAR = grammar.questions;
   REFERENCE_DECKS = reference.decks;
@@ -1297,8 +1302,8 @@ function backToMasterHub(){
 let pendingCfgDefaultLessons = new Set();
 function pickCfgLessonPreset(preset){
   if(preset === 'mid') pendingCfgDefaultLessons = new Set([1,2,3,4,5,6,7,8]);
-  else if(preset === 'final') pendingCfgDefaultLessons = new Set([9,10,11,12,13,14,15,16]);
-  else if(preset === 'all') pendingCfgDefaultLessons = new Set(Array.from({length:TOTAL_LESSONS}, (_,i)=>i+1).filter(hasWords));
+  else if(preset === 'final') pendingCfgDefaultLessons = new Set(lessonNumberList().filter(n=>n>8 && hasWords(n)));
+  else if(preset === 'all') pendingCfgDefaultLessons = new Set(lessonNumberList().filter(hasWords));
   else if(preset === 'clear') pendingCfgDefaultLessons = new Set();
   renderCfgLessonGrid();
 }
@@ -1306,7 +1311,7 @@ function renderCfgLessonGrid(){
   const grid = document.getElementById('cfgLessonGrid');
   if(!grid) return;
   grid.innerHTML = '';
-  for(let n=1;n<=TOTAL_LESSONS;n++){
+  for(const n of lessonNumberList()){
     const has = hasWords(n);
     const btn = document.createElement('button');
     btn.className = 'lesson-chip' + (has ? ' has' : ' empty') + (pendingCfgDefaultLessons.has(n) ? ' selected' : '');
@@ -1668,7 +1673,7 @@ function getPool(){
 function renderLessonGrid(){
   const grid = document.getElementById('lessonGrid');
   grid.innerHTML = '';
-  for(let n=1;n<=TOTAL_LESSONS;n++){
+  for(const n of lessonNumberList()){
     const has = hasWords(n);
     const btn = document.createElement('button');
     btn.className = 'lesson-chip' + (has ? ' has' : ' empty') + (selectedLessons.has(n) ? ' selected' : '');
@@ -1686,8 +1691,8 @@ function toggleLesson(n){
 function selectPreset(preset){
   selectedLessons.clear();
   if(preset === 'mid'){ for(let n=1;n<=8;n++) if(hasWords(n)) selectedLessons.add(n); }
-  if(preset === 'final'){ for(let n=9;n<=16;n++) if(hasWords(n)) selectedLessons.add(n); }
-  if(preset === 'all'){ for(let n=1;n<=TOTAL_LESSONS;n++) if(hasWords(n)) selectedLessons.add(n); }
+  if(preset === 'final'){ for(const n of lessonNumberList()) if(n>8 && hasWords(n)) selectedLessons.add(n); }
+  if(preset === 'all'){ for(const n of lessonNumberList()) if(hasWords(n)) selectedLessons.add(n); }
   renderLessonGrid();
 }
 function updateSelectionSummary(){
@@ -1707,7 +1712,7 @@ function rangeLabel(){
 function openEditor(preferLesson){
   const sel = document.getElementById('editorLessonSelect');
   sel.innerHTML = '';
-  for(let n=1;n<=TOTAL_LESSONS;n++){
+  for(const n of lessonNumberList()){
     const opt = document.createElement('option');
     opt.value = n;
     opt.textContent = 'Lesson ' + n + (hasWords(n) ? ' (' + getLessonWords(n).length + ' 個單字)' : ' (尚未新增)');
@@ -1715,8 +1720,8 @@ function openEditor(preferLesson){
   }
   let startLesson = preferLesson;
   if(!startLesson){
-    startLesson = 1;
-    for(let n=1;n<=TOTAL_LESSONS;n++){ if(!hasWords(n)){ startLesson = n; break; } }
+    startLesson = lessonNumberList()[0];
+    for(const n of lessonNumberList()){ if(!hasWords(n)){ startLesson = n; break; } }
   }
   sel.value = startLesson;
   fillEditorTextarea(startLesson);

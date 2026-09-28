@@ -1,112 +1,723 @@
 {
   "courseLevel": "N7B",
   "totalLessons": 18,
+  "excludedLessons": [
+    9
+  ],
   "lessons": {
     "1": [
-      {"en":"lake","zh":"湖"},
-      {"en":"mountain","zh":"山"},
-      {"en":"waterfall","zh":"瀑布"},
-      {"en":"ocean","zh":"海洋"},
-      {"en":"wide","zh":"寬的(wide/wider/widest)"},
-      {"en":"deep","zh":"深的(deep/deeper/deepest)"},
-      {"en":"high","zh":"高的(high/higher/highest)"},
-      {"en":"quiz","zh":"小考"},
-      {"en":"animal","zh":"動物"},
-      {"en":"cheetah","zh":"印度豹"}
+      {
+        "en": "lake",
+        "zh": "湖"
+      },
+      {
+        "en": "mountain",
+        "zh": "山"
+      },
+      {
+        "en": "waterfall",
+        "zh": "瀑布"
+      },
+      {
+        "en": "ocean",
+        "zh": "海洋"
+      },
+      {
+        "en": "wide",
+        "zh": "寬的(wide/wider/widest)"
+      },
+      {
+        "en": "deep",
+        "zh": "深的(deep/deeper/deepest)"
+      },
+      {
+        "en": "high",
+        "zh": "高的(high/higher/highest)"
+      },
+      {
+        "en": "quiz",
+        "zh": "小考"
+      },
+      {
+        "en": "animal",
+        "zh": "動物"
+      },
+      {
+        "en": "cheetah",
+        "zh": "印度豹"
+      }
     ],
     "2": [
-      {"en":"building","zh":"建築物"},
-      {"en":"country","zh":"國家、鄉下"},
-      {"en":"bridge","zh":"橋"},
-      {"en":"river","zh":"河流"},
-      {"en":"old","zh":"老舊的"},
-      {"en":"long","zh":"(最)長(long/longer/longest)"},
-      {"en":"records","zh":"記錄、記載"},
-      {"en":"temples","zh":"寺廟"},
-      {"en":"surface","zh":"外觀、外表"},
-      {"en":"flow","zh":"流動"}
+      {
+        "en": "building",
+        "zh": "建築物"
+      },
+      {
+        "en": "country",
+        "zh": "國家、鄉下"
+      },
+      {
+        "en": "bridge",
+        "zh": "橋"
+      },
+      {
+        "en": "river",
+        "zh": "河流"
+      },
+      {
+        "en": "old",
+        "zh": "老舊的"
+      },
+      {
+        "en": "long",
+        "zh": "(最)長(long/longer/longest)"
+      },
+      {
+        "en": "records",
+        "zh": "記錄、記載"
+      },
+      {
+        "en": "temples",
+        "zh": "寺廟"
+      },
+      {
+        "en": "surface",
+        "zh": "外觀、外表"
+      },
+      {
+        "en": "flow",
+        "zh": "流動"
+      }
     ],
     "3": [
-      {"en":"café","zh":"咖啡廳"},
-      {"en":"library","zh":"圖書館"},
-      {"en":"shopping mall","zh":"購物中心"},
-      {"en":"sports center","zh":"運動中心"},
-      {"en":"movie theater","zh":"電影院"},
-      {"en":"swimming pool","zh":"游泳池"},
-      {"en":"concert","zh":"演唱會"},
-      {"en":"always","zh":"總是"},
-      {"en":"sometimes","zh":"有時候"},
-      {"en":"never","zh":"從不"}
+      {
+        "en": "café",
+        "zh": "咖啡廳"
+      },
+      {
+        "en": "library",
+        "zh": "圖書館"
+      },
+      {
+        "en": "shopping mall",
+        "zh": "購物中心"
+      },
+      {
+        "en": "sports center",
+        "zh": "運動中心"
+      },
+      {
+        "en": "movie theater",
+        "zh": "電影院"
+      },
+      {
+        "en": "swimming pool",
+        "zh": "游泳池"
+      },
+      {
+        "en": "concert",
+        "zh": "演唱會"
+      },
+      {
+        "en": "always",
+        "zh": "總是"
+      },
+      {
+        "en": "sometimes",
+        "zh": "有時候"
+      },
+      {
+        "en": "never",
+        "zh": "從不"
+      }
     ],
     "4": [
-      {"en":"path","zh":"小徑、路線"},
-      {"en":"grass","zh":"草坪"},
-      {"en":"flowers","zh":"花"},
-      {"en":"garbage can","zh":"垃圾桶"},
-      {"en":"trees","zh":"樹"},
-      {"en":"playground","zh":"遊樂場"},
-      {"en":"fountain","zh":"泉水;噴泉"},
-      {"en":"litter","zh":"垃圾"},
-      {"en":"beautiful","zh":"漂亮的"},
-      {"en":"catch","zh":"接住、抓住"}
+      {
+        "en": "path",
+        "zh": "小徑、路線"
+      },
+      {
+        "en": "grass",
+        "zh": "草坪"
+      },
+      {
+        "en": "flowers",
+        "zh": "花"
+      },
+      {
+        "en": "garbage can",
+        "zh": "垃圾桶"
+      },
+      {
+        "en": "trees",
+        "zh": "樹"
+      },
+      {
+        "en": "playground",
+        "zh": "遊樂場"
+      },
+      {
+        "en": "fountain",
+        "zh": "泉水;噴泉"
+      },
+      {
+        "en": "litter",
+        "zh": "垃圾"
+      },
+      {
+        "en": "beautiful",
+        "zh": "漂亮的"
+      },
+      {
+        "en": "catch",
+        "zh": "接住、抓住"
+      }
     ],
     "5": [
-      {"en":"shout","zh":"大叫、大吼"},
-      {"en":"chase","zh":"追逐"},
-      {"en":"catch","zh":"接住"},
-      {"en":"meet","zh":"遇見、碰見"},
-      {"en":"cross","zh":"橫越"},
-      {"en":"laugh","zh":"笑"},
-      {"en":"special","zh":"特別的"},
-      {"en":"river","zh":"河流"},
-      {"en":"water","zh":"水"},
-      {"en":"deeper","zh":"更深的"}
+      {
+        "en": "shout",
+        "zh": "大叫、大吼"
+      },
+      {
+        "en": "chase",
+        "zh": "追逐"
+      },
+      {
+        "en": "catch",
+        "zh": "接住"
+      },
+      {
+        "en": "meet",
+        "zh": "遇見、碰見"
+      },
+      {
+        "en": "cross",
+        "zh": "橫越"
+      },
+      {
+        "en": "laugh",
+        "zh": "笑"
+      },
+      {
+        "en": "special",
+        "zh": "特別的"
+      },
+      {
+        "en": "river",
+        "zh": "河流"
+      },
+      {
+        "en": "water",
+        "zh": "水"
+      },
+      {
+        "en": "deeper",
+        "zh": "更深的"
+      }
     ],
     "6": [
-      {"en":"ferry","zh":"渡輪"},
-      {"en":"bus","zh":"巴士"},
-      {"en":"helicopter","zh":"直升機"},
-      {"en":"motorcycle","zh":"摩托車"},
-      {"en":"plane","zh":"飛機"},
-      {"en":"taxi","zh":"計程車"},
-      {"en":"train","zh":"火車"},
-      {"en":"trolley","zh":"電車"},
-      {"en":"skateboard","zh":"滑板"},
-      {"en":"photo","zh":"照片"}
+      {
+        "en": "ferry",
+        "zh": "渡輪"
+      },
+      {
+        "en": "bus",
+        "zh": "巴士"
+      },
+      {
+        "en": "helicopter",
+        "zh": "直升機"
+      },
+      {
+        "en": "motorcycle",
+        "zh": "摩托車"
+      },
+      {
+        "en": "plane",
+        "zh": "飛機"
+      },
+      {
+        "en": "taxi",
+        "zh": "計程車"
+      },
+      {
+        "en": "train",
+        "zh": "火車"
+      },
+      {
+        "en": "trolley",
+        "zh": "電車"
+      },
+      {
+        "en": "skateboard",
+        "zh": "滑板"
+      },
+      {
+        "en": "photo",
+        "zh": "照片"
+      }
     ],
     "7": [
-      {"en":"along","zh":"沿著"},
-      {"en":"through","zh":"通過"},
-      {"en":"in the middle of","zh":"在...中間"},
-      {"en":"at the top of","zh":"在...上面"},
-      {"en":"between","zh":"在...之間"},
-      {"en":"inside","zh":"內部、裡面"},
-      {"en":"America","zh":"美國"},
-      {"en":"England","zh":"英格蘭"},
-      {"en":"settlers","zh":"移居者"},
-      {"en":"Thanksgiving","zh":"感恩節"}
+      {
+        "en": "along",
+        "zh": "沿著"
+      },
+      {
+        "en": "through",
+        "zh": "通過"
+      },
+      {
+        "en": "in the middle of",
+        "zh": "在...中間"
+      },
+      {
+        "en": "at the top of",
+        "zh": "在...上面"
+      },
+      {
+        "en": "between",
+        "zh": "在...之間"
+      },
+      {
+        "en": "inside",
+        "zh": "內部、裡面"
+      },
+      {
+        "en": "America",
+        "zh": "美國"
+      },
+      {
+        "en": "England",
+        "zh": "英格蘭"
+      },
+      {
+        "en": "settlers",
+        "zh": "移居者"
+      },
+      {
+        "en": "Thanksgiving",
+        "zh": "感恩節"
+      }
     ],
     "8": [
-      {"en":"worried","zh":"擔心的"},
-      {"en":"generous","zh":"慷慨的"},
-      {"en":"young","zh":"年輕的"},
-      {"en":"tall","zh":"高的"},
-      {"en":"handsome","zh":"英俊的"},
-      {"en":"pretty","zh":"漂亮的"},
-      {"en":"cheerful","zh":"興高采烈的"},
-      {"en":"shy","zh":"害羞的"},
-      {"en":"relaxed","zh":"放鬆的"},
-      {"en":"friendly","zh":"親切的"}
+      {
+        "en": "worried",
+        "zh": "擔心的"
+      },
+      {
+        "en": "generous",
+        "zh": "慷慨的"
+      },
+      {
+        "en": "young",
+        "zh": "年輕的"
+      },
+      {
+        "en": "tall",
+        "zh": "高的"
+      },
+      {
+        "en": "handsome",
+        "zh": "英俊的"
+      },
+      {
+        "en": "pretty",
+        "zh": "漂亮的"
+      },
+      {
+        "en": "cheerful",
+        "zh": "興高采烈的"
+      },
+      {
+        "en": "shy",
+        "zh": "害羞的"
+      },
+      {
+        "en": "relaxed",
+        "zh": "放鬆的"
+      },
+      {
+        "en": "friendly",
+        "zh": "親切的"
+      }
     ],
-    "9": [],
-    "10": [],
-    "11": [],
-    "12": [],
-    "13": [],
-    "14": [],
-    "15": [],
-    "16": [],
-    "17": [],
-    "18": []
+    "10": [
+      {
+        "en": "start",
+        "zh": "開始"
+      },
+      {
+        "en": "finish",
+        "zh": "結束;完成"
+      },
+      {
+        "en": "love",
+        "zh": "愛;熱愛"
+      },
+      {
+        "en": "hate",
+        "zh": "仇恨、不喜歡"
+      },
+      {
+        "en": "want",
+        "zh": "要、想要"
+      },
+      {
+        "en": "use",
+        "zh": "使用"
+      },
+      {
+        "en": "laugh",
+        "zh": "笑"
+      },
+      {
+        "en": "lived",
+        "zh": "住過"
+      },
+      {
+        "en": "secret",
+        "zh": "秘密"
+      },
+      {
+        "en": "alphabet",
+        "zh": "字母"
+      }
+    ],
+    "11": [
+      {
+        "en": "homework",
+        "zh": "回家作業"
+      },
+      {
+        "en": "message",
+        "zh": "訊息"
+      },
+      {
+        "en": "pictures",
+        "zh": "圖片"
+      },
+      {
+        "en": "house",
+        "zh": "房子"
+      },
+      {
+        "en": "apartments",
+        "zh": "公寓"
+      },
+      {
+        "en": "kitchen",
+        "zh": "廚房"
+      },
+      {
+        "en": "hungry",
+        "zh": "飢餓的"
+      },
+      {
+        "en": "party",
+        "zh": "派對"
+      },
+      {
+        "en": "ancient",
+        "zh": "古老的"
+      },
+      {
+        "en": "yesterday",
+        "zh": "昨天"
+      }
+    ],
+    "12": [
+      {
+        "en": "heavy",
+        "zh": "重的"
+      },
+      {
+        "en": "light",
+        "zh": "輕的"
+      },
+      {
+        "en": "hard",
+        "zh": "硬的"
+      },
+      {
+        "en": "soft",
+        "zh": "軟的"
+      },
+      {
+        "en": "easy",
+        "zh": "簡單的"
+      },
+      {
+        "en": "difficult",
+        "zh": "困難的"
+      },
+      {
+        "en": "thousand",
+        "zh": "千"
+      },
+      {
+        "en": "special",
+        "zh": "特別的"
+      },
+      {
+        "en": "weather",
+        "zh": "天氣"
+      },
+      {
+        "en": "comfortable",
+        "zh": "舒服的"
+      }
+    ],
+    "13": [
+      {
+        "en": "paint",
+        "zh": "顏料"
+      },
+      {
+        "en": "paintbrush",
+        "zh": "顏料刷"
+      },
+      {
+        "en": "calculator",
+        "zh": "計算機"
+      },
+      {
+        "en": "lunchbox",
+        "zh": "午餐盒"
+      },
+      {
+        "en": "dictionary",
+        "zh": "字典"
+      },
+      {
+        "en": "P.E. clothes",
+        "zh": "體育服"
+      },
+      {
+        "en": "backpack",
+        "zh": "背包"
+      },
+      {
+        "en": "apron",
+        "zh": "圍裙"
+      },
+      {
+        "en": "drop",
+        "zh": "掉落"
+      },
+      {
+        "en": "believe",
+        "zh": "相信"
+      }
+    ],
+    "14": [
+      {
+        "en": "house",
+        "zh": "房子"
+      },
+      {
+        "en": "visit",
+        "zh": "拜訪"
+      },
+      {
+        "en": "cousins",
+        "zh": "表(堂)兄弟姊妹"
+      },
+      {
+        "en": "picnic",
+        "zh": "野餐"
+      },
+      {
+        "en": "playground",
+        "zh": "遊樂場"
+      },
+      {
+        "en": "breakfast",
+        "zh": "早餐"
+      },
+      {
+        "en": "lunch",
+        "zh": "午餐"
+      },
+      {
+        "en": "dinner",
+        "zh": "晚餐"
+      },
+      {
+        "en": "children",
+        "zh": "孩子"
+      },
+      {
+        "en": "computer",
+        "zh": "電腦"
+      }
+    ],
+    "15": [
+      {
+        "en": "tent",
+        "zh": "帳篷"
+      },
+      {
+        "en": "sleeping bag",
+        "zh": "睡袋"
+      },
+      {
+        "en": "frying pan",
+        "zh": "平底鍋"
+      },
+      {
+        "en": "matches",
+        "zh": "火柴"
+      },
+      {
+        "en": "rope",
+        "zh": "繩子"
+      },
+      {
+        "en": "flashlight",
+        "zh": "手電筒"
+      },
+      {
+        "en": "camping",
+        "zh": "露營"
+      },
+      {
+        "en": "river",
+        "zh": "河流"
+      },
+      {
+        "en": "bridge",
+        "zh": "橋"
+      },
+      {
+        "en": "outside",
+        "zh": "外面、戶外"
+      }
+    ],
+    "16": [
+      {
+        "en": "suitcase",
+        "zh": "行李箱"
+      },
+      {
+        "en": "sunscreen",
+        "zh": "防曬乳"
+      },
+      {
+        "en": "towel",
+        "zh": "毛巾"
+      },
+      {
+        "en": "soap",
+        "zh": "肥皂"
+      },
+      {
+        "en": "shampoo",
+        "zh": "洗髮精"
+      },
+      {
+        "en": "hairbrush",
+        "zh": "梳子"
+      },
+      {
+        "en": "toothbrush",
+        "zh": "牙刷"
+      },
+      {
+        "en": "toothpaste",
+        "zh": "牙膏"
+      },
+      {
+        "en": "vacation",
+        "zh": "假期"
+      },
+      {
+        "en": "backpack",
+        "zh": "後背包"
+      }
+    ],
+    "17": [
+      {
+        "en": "skateboard",
+        "zh": "滑板"
+      },
+      {
+        "en": "ocean",
+        "zh": "海洋"
+      },
+      {
+        "en": "basketball",
+        "zh": "籃球"
+      },
+      {
+        "en": "tomorrow",
+        "zh": "明天"
+      },
+      {
+        "en": "vacation",
+        "zh": "假期"
+      },
+      {
+        "en": "next week",
+        "zh": "下周"
+      },
+      {
+        "en": "beach",
+        "zh": "沙灘"
+      },
+      {
+        "en": "station",
+        "zh": "站"
+      },
+      {
+        "en": "photos",
+        "zh": "照片"
+      },
+      {
+        "en": "windsurf",
+        "zh": "風帆衝浪"
+      }
+    ],
+    "18": [
+      {
+        "en": "tomorrow",
+        "zh": "明天"
+      },
+      {
+        "en": "later",
+        "zh": "待會"
+      },
+      {
+        "en": "tonight",
+        "zh": "今晚"
+      },
+      {
+        "en": "this afternoon",
+        "zh": "這個下午"
+      },
+      {
+        "en": "soon",
+        "zh": "盡快"
+      },
+      {
+        "en": "fantastic",
+        "zh": "驚奇的"
+      },
+      {
+        "en": "amusement park",
+        "zh": "遊樂園"
+      },
+      {
+        "en": "restaurant",
+        "zh": "餐廳"
+      },
+      {
+        "en": "seafood",
+        "zh": "海鮮"
+      },
+      {
+        "en": "dolphin",
+        "zh": "海豚"
+      }
+    ]
   }
 }
