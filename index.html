@@ -1988,30 +1988,38 @@ function playFlashAutoCurrent(){
   if(info) info.textContent = '🔁 自動播放中(第 ' + flashAutoRound + '/' + FLASH_AUTO_MAX_ROUNDS + ' 輪 · ' + (flashAutoIdx+1) + '/' + flashAutoQueue.length + ')';
   const letters = item.en.replace(/[^a-zA-Z]/g,'').toLowerCase().split('');
   const letterParts = letters.map(ch => ({text:ch, lang:'en-US', rate:0.6, gap:150}));
-  speakSequence([
-    {text:item.en, lang:'en-US', rate:0.85, gap:300},
-    ...letterParts,
-    {text:item.en, lang:'en-US', rate:0.85, gap:300},
-    {text:item.zh, lang:'zh-TW', rate:1, onStart:()=>{ document.getElementById('flashCard').classList.add('flipped'); }}
-  ], ()=>{
+  // Wait for the .5s flip-back CSS transition to finish before speaking — starting
+  // speech synthesis while the 3D flip animation is still running can truncate the
+  // first ~1s of audio on slower devices (tablets), since the busy main thread
+  // delays handoff to the native TTS engine.
+  clearTimeout(flashAutoSpeakTimer);
+  flashAutoSpeakTimer = setTimeout(()=>{
     if(!flashAutoPlayOn) return;
-    flashAutoSpeakTimer = setTimeout(()=>{
+    speakSequence([
+      {text:item.en, lang:'en-US', rate:0.85, gap:300},
+      ...letterParts,
+      {text:item.en, lang:'en-US', rate:0.85, gap:300},
+      {text:item.zh, lang:'zh-TW', rate:1, onStart:()=>{ document.getElementById('flashCard').classList.add('flipped'); }}
+    ], ()=>{
       if(!flashAutoPlayOn) return;
-      flashAutoIdx++;
-      if(flashAutoIdx >= flashAutoQueue.length){
-        flashAutoRound++;
-        if(flashAutoRound > FLASH_AUTO_MAX_ROUNDS){
-          stopFlashAuto();
-          const infoEl = document.getElementById('flashAutoInfo');
-          if(infoEl) infoEl.textContent = '✅ 已經播放 ' + FLASH_AUTO_MAX_ROUNDS + ' 輪,自動停止囉!';
-          return;
+      flashAutoSpeakTimer = setTimeout(()=>{
+        if(!flashAutoPlayOn) return;
+        flashAutoIdx++;
+        if(flashAutoIdx >= flashAutoQueue.length){
+          flashAutoRound++;
+          if(flashAutoRound > FLASH_AUTO_MAX_ROUNDS){
+            stopFlashAuto();
+            const infoEl = document.getElementById('flashAutoInfo');
+            if(infoEl) infoEl.textContent = '✅ 已經播放 ' + FLASH_AUTO_MAX_ROUNDS + ' 輪,自動停止囉!';
+            return;
+          }
+          flashAutoQueue = shuffle(flashPool);
+          flashAutoIdx = 0;
         }
-        flashAutoQueue = shuffle(flashPool);
-        flashAutoIdx = 0;
-      }
-      playFlashAutoCurrent();
-    }, 900);
-  }, () => !flashAutoPlayOn);
+        playFlashAutoCurrent();
+      }, 900);
+    }, () => !flashAutoPlayOn);
+  }, 550);
 }
 function setupFlashSwipe(){
   const el = document.getElementById('flashCard');

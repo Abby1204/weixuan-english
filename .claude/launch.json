@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "weixuan-english-static",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8743"],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "-p", "8743", "."],
       "port": 8743
     }
   ]

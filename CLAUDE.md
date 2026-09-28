@@ -84,17 +84,30 @@ questions / earns stars / changes config, neutralize the cloud write path first:
 
 Also: the content JSON files are loaded via `fetch()`, which browsers block from a bare
 `file://` page (CORS). Testing locally needs a plain static HTTP server run from this
-folder (e.g. `python -m http.server` or an equivalent Node one-liner), not double-clicking
-the HTML file. `vocab.json`/`grammar.json`/`reference.json` must be reachable at their
-relative paths from wherever `english-forest.html` is served.
+folder, not double-clicking the HTML file. `vocab.json`/`grammar.json`/`reference.json`
+must be reachable at their relative paths from wherever `english-forest.html` is served.
 
-A `.claude/launch.json` config (`weixuan-english-static`, port 8743) is committed here for
-exactly this. In one long-running session (2026-09-27) the Browser pane's `preview_start`
-kept ignoring it and reusing a stale cached dev-server association from earlier in that
-same conversation (another project's Vite server, on port 5173, serving this folder as a
-subpath) — if that happens, the actual served files are usually still reachable at
-`http://localhost:<that-port>/weixuan-english/english-forest.html`; check `get_page_text`
-first if the page looks blank, don't assume the tool is fully broken before checking that.
+**This machine has no real Python** — `python`/`python3` on PATH are just the Windows
+Store app-execution-alias stubs (they don't error loudly, they just silently fail to
+start anything). Don't reach for `python -m http.server`. Node.js *is* installed, so
+`.claude/launch.json` (`weixuan-english-static`, port 8743) runs `npx --yes serve -p 8743 .`
+instead.
+
+Separately, in long-running sessions the Browser pane's `preview_start name:"..."` can get
+stuck on a stale server from earlier in that same conversation (observed 2026-09-27 and
+again 2026-09-28: it kept reusing another project's — `investment`'s — Vite server on
+port 5173 no matter what name/config was passed, even after editing launch.json and
+calling `preview_stop` first; the returned `previewId` staying identical across calls is
+the tell). If `preview_start` won't serve the right project, don't keep retrying it —
+start the server manually and point the browser at it directly:
+
+```powershell
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c","npx --yes serve -p 8743 ." -WorkingDirectory "D:\Temp for Abby\Claude\weixuan-english" -WindowStyle Hidden
+```
+
+(`Start-Process -FilePath "npx" ...` without the `cmd.exe /c` wrapper silently fails to
+launch — `npx` is a `.cmd` shim on Windows.) Then use the Browser pane's `navigate` tool
+(not `preview_start`) to open `http://localhost:8743/index.html` directly.
 
 ```js
 window.pushCloudData = async function(){};
