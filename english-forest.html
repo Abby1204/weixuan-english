@@ -1576,6 +1576,11 @@ function speakQueued(text, rate){
   }catch(e){}
 }
 function playTone(ok){
+  // Flush any letters still queued from speakQueued() (rapid keyboard taps don't
+  // cancel each other, so a quick typist can leave several letters queued up) —
+  // otherwise that leftover speech can hold the device's audio session and the
+  // correct/wrong chime goes silent.
+  try{ speechSynthesis.cancel(); }catch(e){}
   try{
     const ctx = new (window.AudioContext||window.webkitAudioContext)();
     const o = ctx.createOscillator(), g = ctx.createGain();
