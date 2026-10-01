@@ -1554,10 +1554,19 @@ function speak(text, rate){
   try{
     if(!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
-    u.rate = rate || 0.85;
-    speechSynthesis.speak(u);
+    // Chrome/WebKit have a known bug where speak() silently does nothing if
+    // called in the same tick as cancel() — a tiny delay lets the cancel
+    // actually flush first. Matters here because rapid key taps (spelling
+    // keyboard) call speak() back-to-back while a previous letter may still
+    // be mid-utterance, unlike the old single-press 🔊 buttons.
+    setTimeout(()=>{
+      try{
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US';
+        u.rate = rate || 0.85;
+        speechSynthesis.speak(u);
+      }catch(e){}
+    }, 50);
   }catch(e){}
 }
 function playTone(ok){
