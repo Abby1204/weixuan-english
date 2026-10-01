@@ -2545,6 +2545,7 @@ function drawSpellUI(){
       b.disabled = t.used || spellDone;
       b.onclick = ()=>{
         if(t.used || spellDone) return;
+        speakQueued(t.ch, 0.7);
         t.used = true;
         spellAnswer.push(t);
         drawSpellUI();
