@@ -2006,7 +2006,7 @@ function playFlashAutoCurrent(){
   renderFlashCardVisual(item);
   const info = document.getElementById('flashAutoInfo');
   if(info) info.textContent = '🔁 自動播放中(第 ' + flashAutoRound + '/' + FLASH_AUTO_MAX_ROUNDS + ' 輪 · ' + (flashAutoIdx+1) + '/' + flashAutoQueue.length + ')';
-  const letters = item.en.replace(/[^a-zA-Z]/g,'').toLowerCase().split('');
+  const letters = spellLetters(item.en).split('');
   const letterParts = letters.map(ch => ({text:ch, lang:'en-US', rate:0.6, gap:150}));
   // Wait for the .5s flip-back CSS transition to finish before speaking — starting
   // speech synthesis while the 3D flip animation is still running can truncate the
@@ -2420,6 +2420,11 @@ const SPELL_DIFF_META = {
   review: {label:'⚠️ 常錯題複習(純聽寫)'},
 };
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('');
+// Spelling answers are letters only: accents folded (café -> cafe) and spaces/punctuation
+// dropped (P.E. clothes -> peclothes), since the A-Z keyboard/tiles can't type those.
+function spellLetters(en){
+  return en.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z]/g,'').toLowerCase();
+}
 let spellDifficulty = 'basic';
 let spellRoundCount = 10;
 let spellItems = [], spellIdx = 0, spellResults = [], spellScore = 0;
@@ -2461,7 +2466,7 @@ function renderSpell(){
   spellAnswer = [];
   spellDone = false;
   if(spellDifficulty === 'basic'){
-    let letters = item.en.split('');
+    let letters = spellLetters(item.en).split('');
     let shuffled = shuffle(letters);
     while(shuffled.join('') === letters.join('') && letters.length > 1){ shuffled = shuffle(letters); }
     spellTiles = shuffled.map((ch,i)=>({ch, used:false, id:i}));
@@ -2532,7 +2537,7 @@ function drawSpellUI(){
   const item = spellItems[spellIdx];
   const slotRow = document.getElementById('spellSlots');
   slotRow.innerHTML = '';
-  const slotCount = (spellDifficulty === 'exam' || spellDifficulty === 'review') ? Math.max(spellAnswer.length, 1) : item.en.length;
+  const slotCount = (spellDifficulty === 'exam' || spellDifficulty === 'review') ? Math.max(spellAnswer.length, 1) : spellLetters(item.en).length;
   for(let i=0;i<slotCount;i++){
     const filled = spellAnswer[i];
     const s = document.createElement('div');
@@ -2559,7 +2564,7 @@ function drawSpellUI(){
     });
   } else {
     bank.classList.add('keyboard');
-    const atCap = spellDifficulty === 'inter' && spellAnswer.length >= item.en.length;
+    const atCap = spellDifficulty === 'inter' && spellAnswer.length >= spellLetters(item.en).length;
     const perRow = 9;
     let row = null;
     ALPHABET.forEach((ch,i)=>{
@@ -2574,7 +2579,7 @@ function drawSpellUI(){
       b.disabled = spellDone || atCap;
       b.onclick = ()=>{
         if(spellDone) return;
-        if(spellDifficulty === 'inter' && spellAnswer.length >= item.en.length) return;
+        if(spellDifficulty === 'inter' && spellAnswer.length >= spellLetters(item.en).length) return;
         speakQueued(ch, 0.7);
         spellAnswer.push({ch});
         drawSpellUI();
@@ -2591,7 +2596,7 @@ function undoTile(){
 }
 function checkSpell(){
   const item = spellItems[spellIdx];
-  const lengthOk = (spellDifficulty === 'exam' || spellDifficulty === 'review') ? spellAnswer.length > 0 : spellAnswer.length === item.en.length;
+  const lengthOk = (spellDifficulty === 'exam' || spellDifficulty === 'review') ? spellAnswer.length > 0 : spellAnswer.length === spellLetters(item.en).length;
   if(!lengthOk){
     const card = document.getElementById('spellCard');
     card.classList.add('shake');
@@ -2599,7 +2604,7 @@ function checkSpell(){
     return;
   }
   const guess = spellAnswer.map(t=>t.ch).join('');
-  const ok = guess.toLowerCase() === item.en.toLowerCase();
+  const ok = guess.toLowerCase() === spellLetters(item.en);
   spellDone = true;
   spellResults[spellIdx] = ok;
   document.getElementById('spellCheckBtn').disabled = true;
