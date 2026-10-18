@@ -1,27 +1,31 @@
-<title>蔚瑄的英語甜甜圈屋</title>
+<title>蔚瑄的英語南瓜屋</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <style>
+  /* 🎃 Halloween night palette (kid-friendly: pumpkin orange + candy purple, no blood red).
+     Token names are kept from the old pink donut theme so the rest of the CSS doesn't change:
+     --pink = pumpkin orange brand accent, --cream* = night-sky purples. */
   :root{
-    --cream:#FFF6F2;
-    --cream-2:#FFEAF0;
-    --cream-3:#FFD9E6;
-    --pink-deep:#C2255C;
-    --pink:#F2679A;
-    --pink-light:#FFE3EC;
-    --ok-deep:#1F5E4C;
+    --cream:#1B1330;
+    --cream-2:#2A1F47;
+    --cream-3:#3A2C5E;
+    --pink-deep:#FFAE5C;
+    --pink:#E8690F;
+    --pink-light:#4A2F3A;
+    --ok-deep:#A6EBC8;
     --ok:#2F8F6E;
-    --ok-light:#E4F1E6;
-    --lavender:#B185DB;
+    --ok-light:#1F3B33;
+    --lavender:#A97BE8;
     --sun:#FFC93C;
     --sun-deep:#E0A825;
-    --coral:#FF6F59;
-    --coral-deep:#E0503C;
-    --sky:#4FA8D8;
-    --ink:#402A34;
-    --ink-soft:#8A6B78;
-    --line:rgba(194,37,92,0.14);
-    --shadow:rgba(194,37,92,0.20);
+    --coral:#E2604A;
+    --coral-deep:#FF9A85;
+    --sky:#4A9FD0;
+    --ink:#F5F0FF;
+    --ink-soft:#BDB0DA;
+    --line:rgba(245,240,255,0.15);
+    --shadow:rgba(0,0,0,0.45);
     --card-radius:22px;
+    color-scheme:dark; /* dark native scrollbars & form controls on the night background */
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -71,9 +75,11 @@
   *{box-sizing:border-box;}
   body{
     background:
-      radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--pink) 16%, transparent), transparent 40%),
-      radial-gradient(circle at 88% 92%, color-mix(in srgb, var(--lavender) 18%, transparent), transparent 45%),
+      radial-gradient(circle at 85% 6%, rgba(255,236,170,0.22), transparent 22%),
+      radial-gradient(circle at 10% 95%, color-mix(in srgb, var(--pink) 18%, transparent), transparent 40%),
+      radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--lavender) 14%, transparent), transparent 70%),
       var(--cream);
+    background-attachment:fixed;
     color:var(--ink);
     font-family:"Noto Sans TC","Baloo 2",sans-serif;
     min-height:100vh;
@@ -343,7 +349,7 @@
     display:inline-block; background:var(--cream-3); border-radius:999px;
     padding:6px 16px; font-size:14px; font-weight:700; color:var(--ink-soft); margin-bottom:18px;
   }
-  .face.back .lesson-tag{ background:rgba(255,255,255,0.5); }
+  .face.back .lesson-tag{ background:rgba(255,255,255,0.12); }
   .face .word{ font-family:"Baloo 2"; font-size:48px; font-weight:800; color:var(--pink-deep); word-break:break-word; }
   .face .zh{ font-size:36px; font-weight:700; word-break:break-word; }
   .face .hint{ position:absolute; bottom:14px; font-size:13px; color:var(--ink-soft); }
@@ -406,7 +412,7 @@
   .primary-btn{
     font-family:"Baloo 2"; font-weight:700; font-size:15px;
     background:var(--pink); color:#fff; border:none; border-radius:999px;
-    padding:11px 22px; cursor:pointer; box-shadow:0 4px 0 var(--pink-deep);
+    padding:11px 22px; cursor:pointer; box-shadow:0 4px 0 color-mix(in srgb, var(--pink) 55%, #000);
   }
   .primary-btn:hover{ filter:brightness(1.05); }
   .ghost-btn{
@@ -598,7 +604,25 @@
   }
   .shake{ animation:shake .3s ease; }
 
+  /* ---------- Halloween backdrop: floating friendly ghosts ---------- */
+  .wrap{ position:relative; z-index:1; }
+  .spooky-layer{ position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .spooky-layer span{ position:absolute; line-height:1; opacity:.22; }
+  .spooky-layer .ghost{ animation:ghost-float 6s ease-in-out infinite; }
+  .spooky-layer .bat{ animation:bat-flap 3.5s ease-in-out infinite; opacity:.18; }
+  .spooky-layer .moon{ opacity:.55; }
+  @keyframes ghost-float{
+    0%,100%{ transform:translateY(0) rotate(-4deg); }
+    50%{ transform:translateY(-18px) rotate(4deg); }
+  }
+  @keyframes bat-flap{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(14px,-8px) scale(.9); }
+  }
+  .mascot .mascot-icon{ animation:ghost-float 4s ease-in-out infinite; }
+
   @media (prefers-reduced-motion: reduce){
+    .spooky-layer span, .mascot .mascot-icon{ animation:none; }
     .flip-inner{ transition:none; }
     .sparkle{ animation:none; opacity:0; }
     .shake{ animation:none; }
@@ -607,30 +631,43 @@
 </style>
 <script>document.documentElement.setAttribute('data-theme', 'light');</script>
 
+<div class="spooky-layer" aria-hidden="true">
+  <span class="moon" style="top:3%;right:6%;font-size:46px;">🌙</span>
+  <span class="ghost" style="top:14%;left:4%;font-size:54px;">👻</span>
+  <span class="ghost" style="top:42%;right:3%;font-size:62px;animation-delay:-2s;">👻</span>
+  <span class="ghost" style="bottom:12%;left:8%;font-size:44px;animation-delay:-4s;">👻</span>
+  <span class="ghost" style="bottom:30%;right:22%;font-size:36px;animation-delay:-1s;">👻</span>
+  <span class="bat" style="top:8%;left:38%;font-size:30px;">🦇</span>
+  <span class="bat" style="top:26%;right:28%;font-size:24px;animation-delay:-1.5s;">🦇</span>
+  <span style="bottom:3%;right:5%;font-size:40px;opacity:.3;">🎃</span>
+  <span style="bottom:5%;left:44%;font-size:30px;opacity:.25;">🍬</span>
+</div>
+
 <div class="wrap">
 
   <div class="topbar">
     <div class="brand">
-      <div class="mascot"><span class="mascot-icon">🐥</span></div>
+      <div class="mascot"><span class="mascot-icon">👻</span></div>
       <div class="brand-text">
-        <h1>蔚瑄的英語甜甜圈屋</h1>
-        <p>🍩 Wei-Xuan's Donut English · 課程單字 &amp; 文法複習</p>
+        <h1>蔚瑄的英語南瓜屋</h1>
+        <p>🎃 Wei-Xuan's Halloween English · 課程單字 &amp; 文法複習</p>
       </div>
     </div>
     <div class="stats">
-      <div class="stat-pill">⭐ <span id="statStars">0</span></div>
+      <div class="stat-pill" title="這一季(這個主題)累積的星星,用來升等級">🎃 本季 <span id="statSeasonStars">0</span></div>
+      <div class="stat-pill" title="從第一天到現在的總星星,永遠不歸零">⭐ 總共 <span id="statStars">0</span></div>
       <div class="stat-pill">🔥 最佳連擊 <span id="statCombo">0</span></div>
       <div class="stat-pill">📅 打卡 <span id="statDaily">0</span> 天</div>
-      <div class="stat-pill" id="statBadge">🍩 甜甜圈新手</div>
-      <button class="stat-pill mode-pill" id="modePill" onclick="openModePicker()">🐥 蔚瑄模式</button>
+      <div class="stat-pill" id="statBadge">🎃 小南瓜新手</div>
+      <button class="stat-pill mode-pill" id="modePill" onclick="openModePicker()">👻 蔚瑄模式</button>
     </div>
   </div>
 
   <!-- HOME -->
   <section class="screen" id="screen-home">
     <div class="home-intro">
-      <div class="mascot"><span class="mascot-icon">🐥</span></div>
-      <div class="speech" id="homeGreeting">哈囉,我是蛋黃酥!先選好要複習的課程範圍,再挑一份甜點練習吧!🍩</div>
+      <div class="mascot"><span class="mascot-icon">👻</span></div>
+      <div class="speech" id="homeGreeting">哈囉,我是小幽靈布布!先選好要複習的課程範圍,再挑一個萬聖節任務吧!🎃</div>
     </div>
     <div class="daily-banner" id="dailyBanner"></div>
     <button class="edit-link" id="adminEntryBtn" onclick="openAdminGate()" hidden>⚙️ 後台管理(需密碼)</button>
@@ -845,7 +882,7 @@
     <p style="font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;">選「蔚瑄模式」才會累積星星、連擊和打卡天數</p>
     <div class="role-row">
       <button class="role-card" onclick="chooseMode('vicky')">
-        <div class="role-icon">🐥</div>
+        <div class="role-icon">👻</div>
         <div class="role-name">蔚瑄模式</div>
         <div class="role-desc">正式練習,答對會累積星星、連擊、每日打卡</div>
       </button>
@@ -870,13 +907,19 @@
     </div>
 
     <div class="reward-block">
-      <div class="reward-title">🏆 最終等級獎勵</div>
-      <div class="reward-desc">星星累積到 <b id="rewardFinalStars">800</b> 顆,晉升「<span id="rewardFinalLabel">英語甜點大師</span>」,可以獲得 <b id="rewardFinalText">200 元文具店自由選購</b>!</div>
+      <div class="reward-title">🏆 本季最終等級獎勵</div>
+      <div class="reward-desc">這一季的星星累積到 <b id="rewardFinalStars">800</b> 顆,晉升「<span id="rewardFinalLabel">萬聖節英語大師</span>」,可以獲得 <b id="rewardFinalText">200 元文具店自由選購</b>!</div>
     </div>
 
     <div class="reward-block">
-      <div class="reward-title">🍩 等級門檻一覽</div>
+      <div class="reward-title">🎃 本季等級門檻一覽</div>
+      <div class="reward-desc" style="margin-bottom:6px;">本季目前 <b id="rewardSeasonStars">0</b> 顆星(換新主題時會重新開始算)</div>
       <div id="tierList" class="tier-list"></div>
+    </div>
+
+    <div class="reward-block">
+      <div class="reward-title">🌟 終身成就</div>
+      <div class="reward-desc">總星星永遠不歸零,目前 <b id="rewardTotalStars">0</b> 顆。累積到 <b id="rewardSecretStars">10000</b> 顆,就能成為「<span id="rewardSecretLabel">秘密特工</span>」,獲得 <b>🤫 神秘獎勵</b>(達成才揭曉)!</div>
     </div>
 
     <div class="result-actions">
@@ -956,10 +999,23 @@
       </div>
 
       <div class="admin-section" data-section="tiers" hidden>
-        <label class="field-label">最終等級獎勵內容(文字)</label>
+        <label class="field-label">本季最終等級獎勵內容(文字)</label>
         <input type="text" class="field-select" id="cfgFinalText">
         <label class="field-label">等級門檻(每行一個,格式:<b>星星數,稱號</b>,由低到高排序,最後一行是最終等級)</label>
-        <textarea class="field-textarea" id="cfgTiers" rows="6" placeholder="0,🍩 甜甜圈新手&#10;60,🍩 甜點學徒"></textarea>
+        <textarea class="field-textarea" id="cfgTiers" rows="6" placeholder="0,🎃 小南瓜新手&#10;60,🍬 糖果收集家"></textarea>
+        <div class="reward-desc" style="margin-top:6px;font-size:12px;color:var(--ink-soft);">↑ 這些等級看的是「本季星星」。</div>
+
+        <label class="field-label" style="margin-top:18px;">🌟 終身成就(看總星星,永遠不歸零)</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="number" class="field-select" id="cfgSecretStars" min="1" placeholder="星星數" style="flex:1;min-width:90px;">
+          <input type="text" class="field-select" id="cfgSecretLabel" placeholder="稱號" style="flex:2;min-width:140px;">
+        </div>
+        <label class="field-label">神秘獎勵內容(蔚瑄只會看到「🤫 神秘獎勵」,達成時才揭曉;留空就顯示「去找媽媽揭曉」)</label>
+        <input type="text" class="field-select" id="cfgSecretReward" placeholder="先保密也可以留空">
+
+        <label class="field-label" style="margin-top:18px;">🔄 換新主題時:開始新一季</label>
+        <div class="reward-desc" style="font-size:12.5px;">本季從 <b id="cfgSeasonStart">-</b> 開始,目前本季 <b id="cfgSeasonStars">0</b> 顆、總共 <b id="cfgTotalStars">0</b> 顆。按下去本季星星會從 0 重新算、本季最終獎勵可以再拿一次;總星星不受影響。</div>
+        <button class="ghost-btn" onclick="startNewSeason()" style="margin-top:8px;">🔄 開始新一季</button>
       </div>
 
       <div class="admin-section" data-section="lessons" hidden>
@@ -979,7 +1035,7 @@
       </div>
 
       <div class="admin-section" data-section="adjust" hidden>
-        <div class="reward-desc" style="margin-bottom:10px;">目前星星:<b id="adjCurrentStars">0</b> 顆。輸入要調整的數量(負數表示扣除,例如操作不當或耍小心機),可以順便填原因方便之後查。</div>
+        <div class="reward-desc" style="margin-bottom:10px;">目前總星星:<b id="adjCurrentStars">0</b> 顆(本季 <b id="adjSeasonStars">0</b> 顆,調整會同時算進兩邊)。輸入要調整的數量(負數表示扣除,例如操作不當或耍小心機),可以順便填原因方便之後查。</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
           <input type="number" class="field-select" id="adjStarAmount" placeholder="例如 -10" style="flex:1;min-width:100px;">
           <input type="text" class="field-select" id="adjStarReason" placeholder="原因(選填)" style="flex:2;min-width:160px;">
@@ -1045,12 +1101,15 @@ function defaultConfig(){
     streakBonusText: '30 元零用錢',
     finalRewardText: '200 元文具店自由選購',
     tiers: [
-      {min:0,   label:'🍩 甜甜圈新手'},
-      {min:60,  label:'🍩 甜點學徒'},
-      {min:180, label:'🍩 甜點師傅'},
-      {min:400, label:'🍩 甜點主廚'},
-      {min:800, label:'🍩 英語甜點大師'},
+      {min:0,   label:'🎃 小南瓜新手'},
+      {min:60,  label:'🍬 糖果收集家'},
+      {min:180, label:'🧹 魔法學徒'},
+      {min:400, label:'🔮 小魔法師'},
+      {min:800, label:'👑 萬聖節英語大師'},
     ],
+    // Lifetime milestone on TOTAL stars (never reset) — separate from the per-season tier ladder above.
+    // rewardText stays hidden from Vicky until she reaches it.
+    secretAgent: {stars:10000, label:'🐈‍⬛ 秘密特工', rewardText:''},
     parentPassword: '0000',
     passwordHint: '',
     grammarStarCap: 3,
@@ -1065,11 +1124,38 @@ function loadConfig(){
   }catch(e){}
   const merged = Object.assign({}, defaultConfig(), c);
   if(!Array.isArray(merged.tiers) || merged.tiers.length===0) merged.tiers = defaultConfig().tiers;
+  normalizeConfig(merged);
   return merged;
+}
+/* Older configs kept the 10000-star 秘密特工 as the last row of `tiers`, which also made it the
+   "final tier". Pull it out into config.secretAgent so tiers is purely the per-season ladder.
+   Also swaps the untouched 🍩 donut-theme labels for the Halloween ones. Returns true if changed. */
+function normalizeConfig(c){
+  let changed = false;
+  const idx = c.tiers.findIndex(t => /秘密特工/.test(t.label));
+  if(idx !== -1){
+    const t = c.tiers[idx];
+    c.secretAgent = Object.assign({rewardText:''}, c.secretAgent, {stars:t.min, label:t.label});
+    c.tiers = c.tiers.filter((_,i)=>i!==idx);
+    if(c.tiers.length===0) c.tiers = defaultConfig().tiers;
+    changed = true;
+  }
+  if(!c.secretAgent) c.secretAgent = defaultConfig().secretAgent;
+  if(c.tiers.every(t => t.label.startsWith('🍩'))){
+    c.tiers = defaultConfig().tiers;
+    changed = true;
+  }
+  return changed;
 }
 function persistConfig(){ try{ localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }catch(e){} schedulePush(); }
 let config = loadConfig();
 function finalTierStars(){ return config.tiers[config.tiers.length-1].min; }
+/* Two star counters: save.stars is the lifetime total (never reset, drives 秘密特工);
+   season stars = stars earned since the current theme/season started (drives the tier ladder). */
+function seasonStars(){
+  const base = (typeof save.seasonBaseStars === 'number') ? save.seasonBaseStars : save.stars;
+  return Math.max(0, save.stars - base);
+}
 function currentTierLabel(stars){
   let label = config.tiers[0].label;
   for(const t of config.tiers){ if(stars >= t.min) label = t.label; }
@@ -1110,6 +1196,9 @@ function applyCloudPayload(remote){
   if(remote.lessonOverrides) lessonOverrides = remote.lessonOverrides;
   if(remote.config) config = Object.assign({}, config, remote.config);
   if(remote.grammarStats) grammarStats = remote.grammarStats;
+  // Run the one-time season migration only after the cloud copy is merged (it's the source of
+  // truth), so the season baseline is taken from the real latest star count, not a stale local one.
+  const migrated = normalizeConfig(config) | migrateSeason();
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){}
   try{ localStorage.setItem(STATS_KEY, JSON.stringify(wordStats)); }catch(e){}
   try{ localStorage.setItem(LESSON_KEY, JSON.stringify(lessonOverrides)); }catch(e){}
@@ -1121,6 +1210,35 @@ function applyCloudPayload(remote){
   refreshStatsBar();
   renderDailyBanner();
   renderBadgesRow();
+  if(migrated) schedulePush();
+}
+/* First load after the season system shipped: start season 1 (Halloween) at the current total.
+   finalRewardCelebrated is the OLD single-ladder flag — forced true so any not-yet-refreshed copy
+   of the old app doesn't fire the old final-tier popup once the 10000 row leaves the tiers list. */
+function migrateSeason(){
+  if(typeof save.seasonBaseStars === 'number') return false;
+  save.seasonBaseStars = save.stars;
+  save.seasonStartDate = todayStr();
+  save.seasonFinalCelebrated = false;
+  save.secretAgentCelebrated = save.stars >= config.secretAgent.stars;
+  save.finalRewardCelebrated = true;
+  return true;
+}
+function startNewSeason(){
+  if(!confirm('確定要開始新一季嗎?\n\n本季星星會從 0 重新算(目前本季 ' + seasonStars() + ' 顆),本季最終獎勵可以再拿一次。\n總星星 ' + save.stars + ' 顆不會變。\n\n記得也到上面把等級稱號換成新主題的名字。')) return;
+  save.seasonBaseStars = save.stars;
+  save.seasonStartDate = todayStr();
+  save.seasonFinalCelebrated = false;
+  saveSave();
+  refreshStatsBar();
+  renderSeasonAdminInfo();
+  renderMasterCurrentStars();
+}
+function renderSeasonAdminInfo(){
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('cfgSeasonStart', save.seasonStartDate || '尚未開始');
+  set('cfgSeasonStars', seasonStars());
+  set('cfgTotalStars', save.stars);
 }
 async function pullCloudData(){
   if(!sb) return;
@@ -1196,7 +1314,7 @@ function checkDailyStatus(){
     const gap = daysBetweenDates(save.lastSeenDate, today);
     if(gap >= 1){
       const greetEl = document.getElementById('homeGreeting');
-      if(greetEl) greetEl.textContent = '哈囉,好久不見!上次看到你是 ' + gap + ' 天前,我們重新開始打卡吧!🍩';
+      if(greetEl) greetEl.textContent = '哈囉,好久不見!上次看到你是 ' + gap + ' 天前,我們重新開始打卡吧!🎃';
     }
   }
   save.lastSeenDate = today;
@@ -1222,9 +1340,10 @@ function chooseMode(mode){
 function renderBadgesRow(){
   const el = document.getElementById('badgesRowText');
   if(!el) return;
-  el.innerHTML = '🍩 累積 ' + config.tiers.slice(1).map(t=>
-    '<b>'+t.min+'</b> 顆「'+t.label.replace(/^🍩\s*/,'')+'」'
-  ).join('・');
+  const sa = config.secretAgent;
+  el.innerHTML = '🎃 本季累積 ' + config.tiers.slice(1).map(t=>
+    '<b>'+t.min+'</b> 顆「'+t.label.replace(/^\p{Extended_Pictographic}\s*/u,'')+'」'
+  ).join('・') + '・🌟 總共 <b>'+sa.stars+'</b> 顆「'+sa.label+'」';
 }
 function openRewardsInfo(){
   document.getElementById('rewardGoalStars').textContent = config.dailyGoalStars;
@@ -1232,12 +1351,17 @@ function openRewardsInfo(){
   document.getElementById('rewardStreakDays2').textContent = config.streakBonusDays;
   document.getElementById('rewardStreakText').textContent = config.streakBonusText;
   document.getElementById('rewardFinalStars').textContent = finalTierStars();
-  document.getElementById('rewardFinalLabel').textContent = config.tiers[config.tiers.length-1].label.replace(/^🍩\s*/,'');
+  document.getElementById('rewardFinalLabel').textContent = config.tiers[config.tiers.length-1].label.replace(/^\p{Extended_Pictographic}\s*/u,'');
   document.getElementById('rewardFinalText').textContent = config.finalRewardText;
+  document.getElementById('rewardSeasonStars').textContent = seasonStars();
+  document.getElementById('rewardTotalStars').textContent = save.stars;
+  document.getElementById('rewardSecretStars').textContent = config.secretAgent.stars;
+  document.getElementById('rewardSecretLabel').textContent = config.secretAgent.label;
   const list = document.getElementById('tierList');
   list.innerHTML = '';
+  const ss = seasonStars();
   config.tiers.forEach(t=>{
-    const done = save.stars >= t.min;
+    const done = ss >= t.min;
     const row = document.createElement('div');
     row.className = 'tier-row' + (done ? ' done' : '');
     row.innerHTML = '<span>'+t.label+'</span><span>'+t.min+' 顆'+(done ? ' ✓' : '')+'</span>';
@@ -1275,6 +1399,10 @@ function openMasterPanel(){
   document.getElementById('cfgStreakText').value = config.streakBonusText;
   document.getElementById('cfgFinalText').value = config.finalRewardText;
   document.getElementById('cfgTiers').value = config.tiers.map(t=>t.min+','+t.label).join('\n');
+  document.getElementById('cfgSecretStars').value = config.secretAgent.stars;
+  document.getElementById('cfgSecretLabel').value = config.secretAgent.label;
+  document.getElementById('cfgSecretReward').value = config.secretAgent.rewardText || '';
+  renderSeasonAdminInfo();
   document.getElementById('cfgGrammarCap').value = config.grammarStarCap;
   document.getElementById('cfgPassword').value = config.parentPassword;
   document.getElementById('cfgPasswordHint').value = config.passwordHint || '';
@@ -1329,6 +1457,8 @@ function renderCfgLessonGrid(){
 function renderMasterCurrentStars(){
   const el = document.getElementById('adjCurrentStars');
   if(el) el.textContent = save.stars;
+  const sel = document.getElementById('adjSeasonStars');
+  if(sel) sel.textContent = seasonStars();
 }
 function renderAdjustmentHistory(){
   const el = document.getElementById('adjHistoryList');
@@ -1360,8 +1490,11 @@ function applyStarAdjustment(){
     reason: reason
   });
   save.starAdjustments = save.starAdjustments.slice(0, 20);
-  if(save.stars >= finalTierStars()) save.finalRewardCelebrated = true;
+  // A manual adjustment never fires the celebration popups — mark them as already shown instead.
+  if(seasonStars() >= finalTierStars()) save.seasonFinalCelebrated = true;
+  if(save.stars >= config.secretAgent.stars) save.secretAgentCelebrated = true;
   saveSave();
+  renderSeasonAdminInfo();
   refreshStatsBar();
   renderDailyBanner();
   renderBadgesRow();
@@ -1388,12 +1521,19 @@ function saveMasterPanel(){
   const password = document.getElementById('cfgPassword').value.trim();
   const passwordHint = document.getElementById('cfgPasswordHint').value.trim();
   const defaultLessons = Array.from(pendingCfgDefaultLessons).sort((a,b)=>a-b);
+  const secretStars = parseInt(document.getElementById('cfgSecretStars').value, 10);
+  const secretLabel = document.getElementById('cfgSecretLabel').value.trim();
+  const secretReward = document.getElementById('cfgSecretReward').value.trim();
+  if(!secretStars || secretStars<1 || !secretLabel){
+    alert('請填寫終身成就的星星數和稱號');
+    return;
+  }
 
   if(!dailyGoal || dailyGoal<1 || !streakDays || streakDays<1 || !streakText || !finalText || tiers.length===0 || !grammarCap || grammarCap<1 || !password || defaultLessons.length===0){
     alert('請確認每個欄位都有正確填寫(數字要大於0,等級門檻至少一行,格式:星星數,稱號,複習範圍預設至少選一課)');
     return;
   }
-  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, grammarStarCap: grammarCap, parentPassword: password, passwordHint: passwordHint, defaultLessons: defaultLessons };
+  config = { dailyGoalStars: dailyGoal, streakBonusDays: streakDays, streakBonusText: streakText, finalRewardText: finalText, tiers, secretAgent: {stars: secretStars, label: secretLabel, rewardText: secretReward}, grammarStarCap: grammarCap, parentPassword: password, passwordHint: passwordHint, defaultLessons: defaultLessons };
   persistConfig();
   closeMasterPanel();
   refreshStatsBar();
@@ -1500,15 +1640,17 @@ function initSelection(){
 
 function refreshStatsBar(){
   document.getElementById('statStars').textContent = save.stars;
+  document.getElementById('statSeasonStars').textContent = seasonStars();
   document.getElementById('statCombo').textContent = save.bestCombo;
   document.getElementById('statDaily').textContent = save.dailyStreak;
-  document.getElementById('statBadge').textContent = currentTierLabel(save.stars);
+  document.getElementById('statBadge').textContent =
+    (save.stars >= config.secretAgent.stars ? config.secretAgent.label + ' · ' : '') + currentTierLabel(seasonStars());
   const modePill = document.getElementById('modePill');
   if(currentMode === 'parent'){
     modePill.textContent = '🔧 家長模式';
     modePill.classList.add('parent');
   } else {
-    modePill.textContent = '🐥 蔚瑄模式';
+    modePill.textContent = '👻 蔚瑄模式';
     modePill.classList.remove('parent');
   }
 }
@@ -1535,8 +1677,8 @@ function renderDailyBanner(){
 }
 
 const GREETINGS = [
-  '哈囉!先選好要複習的課程範圍,再挑一份甜點練習吧!',
-  '準備好開一間英語甜甜圈店了嗎?🍩',
+  '哈囉!先選好要複習的課程範圍,再挑一個萬聖節任務吧!👻',
+  'Trick or treat!答對題目就能收集糖果星星喔!🍬',
   '選好課程範圍,我們一起加油!',
   '快考試了嗎?選好範圍馬上開始複習!'
 ];
@@ -1646,10 +1788,15 @@ function addStars(n){
     }
   }
   const finalStars = finalTierStars();
-  const finalLabel = config.tiers[config.tiers.length-1].label.replace(/^🍩\s*/,'');
-  if(save.stars >= finalStars && !save.finalRewardCelebrated){
-    save.finalRewardCelebrated = true;
-    showCelebrate('🏆', '恭喜晉升「' + finalLabel + '」!', '達成 ' + finalStars + ' 顆星,跟媽媽兌換 ' + config.finalRewardText + ' 吧!');
+  const finalLabel = config.tiers[config.tiers.length-1].label.replace(/^\p{Extended_Pictographic}\s*/u,'');
+  if(seasonStars() >= finalStars && !save.seasonFinalCelebrated){
+    save.seasonFinalCelebrated = true;
+    showCelebrate('🏆', '恭喜晉升「' + finalLabel + '」!', '這一季達成 ' + finalStars + ' 顆星,跟媽媽兌換 ' + config.finalRewardText + ' 吧!');
+  }
+  const sa = config.secretAgent;
+  if(save.stars >= sa.stars && !save.secretAgentCelebrated){
+    save.secretAgentCelebrated = true;
+    showCelebrate('🕵️', '恭喜成為「' + sa.label + '」!', '總共累積 ' + sa.stars + ' 顆星!' + (sa.rewardText ? '🤫 神秘獎勵揭曉:' + sa.rewardText : '🤫 快去找媽媽揭曉神秘獎勵吧!'));
   }
   saveSave();
   refreshStatsBar();

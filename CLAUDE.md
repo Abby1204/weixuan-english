@@ -212,12 +212,26 @@ semester-structure concept, not course content, and isn't expected to change wit
   it used to only self-correct lazily on the next successful day, which showed a stale
   number in the meantime. Returning after ≥1 day away also swaps the home greeting to a
   "long time no see, N days ago" message once.
-- **Tiers / badges**: `config.tiers` (default 0/60/180/400/800 stars → 甜甜圈新手 /
-  甜點學徒 / 甜點師傅 / 甜點主廚 / 英語甜點大師). 800 is deliberately hard — meant to
-  take most of a semester of real practice, not one cram session.
+- **Two star counters (seasons)** — added 2026-10-18 with the Halloween re-theme:
+  - `save.stars` = **lifetime total, never reset**. Drives only the lifetime milestone
+    `config.secretAgent` `{stars:10000, label:'🐈‍⬛秘密特工', rewardText}`. Abby wants its
+    reward kept **secret** — Vicky only sees "🤫 神秘獎勵(達成才揭曉)"; `rewardText` is
+    revealed in the popup on reaching it (empty → "go ask mom"). Flag
+    `save.secretAgentCelebrated`.
+  - **Season stars** = `save.stars - save.seasonBaseStars` (`seasonStars()`). Drives the
+    `config.tiers` ladder and the season final reward (flag `save.seasonFinalCelebrated`).
+    Admin → 等級門檻 → **🔄 開始新一季** resets the baseline (for each future re-theme).
+  - `normalizeConfig()` / `migrateSeason()` (run in `applyCloudPayload`, i.e. after the
+    cloud copy is merged) migrated the old data once: pulled the 秘密特工 row out of
+    `tiers` into `secretAgent`, swapped the 🍩 donut labels for Halloween ones, set
+    `seasonBaseStars` = 1291 (season 1 started 2026-10-18), and forced the old
+    `save.finalRewardCelebrated` flag true so stale old-version tabs don't misfire.
+- **Tiers / badges**: `config.tiers`, per-season (Halloween default 0/60/180/400/800 →
+  🎃 小南瓜新手 / 🍬 糖果收集家 / 🧹 魔法學徒 / 🔮 小魔法師 / 👑 萬聖節英語大師). 800 is
+  deliberately hard — meant to take most of a semester of real practice.
 - **Real-world payouts** (Abby manually fulfills these — the app only tracks and
   celebrates): every `config.streakBonusDays` (default 5) days of daily-check-in streak
-  → `config.streakBonusText` (default "30 元零用錢"); reaching the final tier →
+  → `config.streakBonusText` (default "30 元零用錢"); reaching the season's final tier →
   `config.finalRewardText` (default "200 元文具店自由選購", Abby has since changed this
   to 250 in real use). A celebratory popup fires automatically at each milestone.
 - **🎁 獎勵說明**: a home-screen button showing the current rules + tier ladder with
@@ -239,15 +253,20 @@ semester-structure concept, not course content, and isn't expected to change wit
 
 ## Known future plan
 
-See the assistant's own persistent memory for full detail, but in short: **when Vicky
-reaches the final tier, the plan is to re-theme the whole app** (new seasonal visual
-identity — Abby's example was Christmas — new mascot, new tier ladder) rather than just
-leaving her sitting at max level. Confirm the desired direction with Abby before building
-it; don't do it unprompted.
+The app is re-themed per "season" (donut → **Halloween** on 2026-10-18; Abby's earlier
+example for a later one was Christmas): new palette, mascot, tier labels, then Abby
+presses 🔄 開始新一季 so season stars restart at 0 (lifetime stars untouched). Confirm the
+desired direction with Abby before building the next theme; don't do it unprompted.
 
 ## Visual identity notes
 
-- Pink "甜甜圈屋" (donut shop) theme — palette tokens defined once in `:root` (light) and
+- **Current theme: Halloween "南瓜屋"** (since 2026-10-18) — purple night-sky background,
+  pumpkin-orange accent, floating semi-transparent 👻/🦇/🎃 backdrop (`.spooky-layer`).
+  Abby asked for ghosts but **nothing gory** — no blood red. Token names are still the
+  old pink ones (`--pink` = pumpkin orange, `--cream*` = night purples) so the component
+  CSS didn't need touching; the night palette lives in the plain `:root` block (the one
+  the forced `data-theme="light"` uses), with `color-scheme:dark` for native controls.
+- Previous theme was pink "甜甜圈屋" (donut shop) — palette tokens defined once in `:root` (light) and
   mirrored for `prefers-color-scheme: dark` / `data-theme="dark"`. An inline script forces
   `data-theme="light"` on load, so the app always renders the light palette regardless of
   the device's system theme — Abby's device auto-switching to the darker palette read as
@@ -257,7 +276,8 @@ it; don't do it unprompted.
   (`--ok` green for correct, `--coral` red for wrong) are intentionally separate from the
   `--pink` brand accent, plus `--sky`/`--sun`/`--lavender` as secondary "candy" accents
   used for the 5 home-screen activity icons.
-- Mascot is a baby chick emoji (🐥), named **蛋黃酥** (a real Taiwanese pastry, punning on
+- Mascot is now a ghost (👻) named **小幽靈布布** (Boo), gently floating in its avatar
+  frame. Before Halloween it was a baby chick emoji (🐥), named **蛋黃酥** (a real Taiwanese pastry, punning on
   chick/egg) — went through owl → white cat (emoji can't actually be recolored, this was
   attempted via CSS filter) → turtle → chick before landing here; chick was chosen partly
   because its glyph is visually round/symmetric enough to actually look centered in the
