@@ -1180,24 +1180,58 @@ try{
   if(window.supabase) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }catch(e){ sb = null; }
 
+/* Last-write-wins by timestamp. Every local change stamps localSavedAt and the pushed blob carries it;
+   a cloud copy is only applied if it is NEWER than what this device already has. Without this, going
+   back to the home screen (which pulls) right after a round — before the debounced push landed —
+   replaced the fresh local stars/check-in with the older cloud copy and then pushed that back. */
+const SAVED_AT_KEY = 'pipiForest_savedAt_v1';
+const CLIENT_ID_KEY = 'pipiForest_clientId_v1';
+let localSavedAt = 0;
+try{ localSavedAt = Number(localStorage.getItem(SAVED_AT_KEY)) || 0; }catch(e){}
+function setSavedAt(t){
+  localSavedAt = t;
+  try{ localStorage.setItem(SAVED_AT_KEY, String(t)); }catch(e){}
+}
+const CLIENT_ID = (()=>{
+  try{
+    let id = localStorage.getItem(CLIENT_ID_KEY);
+    if(!id){ id = Math.random().toString(36).slice(2); localStorage.setItem(CLIENT_ID_KEY, id); }
+    return id;
+  }catch(e){ return Math.random().toString(36).slice(2); }
+})();
+let applyingRemote = false;
 let cloudPushTimer = null;
 function schedulePush(){
+  if(applyingRemote) return;
+  setSavedAt(Date.now());
   if(!sb) return;
   clearTimeout(cloudPushTimer);
   cloudPushTimer = setTimeout(pushCloudData, 800);
 }
 async function pushCloudData(){
+  cloudPushTimer = null;
   if(!sb) return;
   try{
     await sb.from('english_progress').upsert({
       id: CLOUD_ROW_ID,
-      data: { save, wordStats, lessonOverrides, config, grammarStats },
+      data: { save, wordStats, lessonOverrides, config, grammarStats, savedAt: localSavedAt, clientId: CLIENT_ID },
       updated_at: new Date().toISOString()
     });
   }catch(e){ /* offline, or table not created yet — local data stays safe */ }
 }
 function applyCloudPayload(remote){
   if(!remote) return;
+  const remoteAt = Number(remote.savedAt) || 0;
+  if(remoteAt && remoteAt <= localSavedAt){
+    // Local is the same (our own echo) or newer. Never overwrite it; if it hasn't reached the cloud yet, send it.
+    if(remoteAt < localSavedAt && !cloudPushTimer) pushCloudData();
+    return;
+  }
+  applyingRemote = true;
+  try{ applyCloudPayloadNow(remote, remoteAt); }
+  finally{ applyingRemote = false; }
+}
+function applyCloudPayloadNow(remote, remoteAt){
   if(remote.save) save = Object.assign({}, save, remote.save);
   if(remote.wordStats) wordStats = remote.wordStats;
   if(remote.lessonOverrides) lessonOverrides = remote.lessonOverrides;
@@ -1206,6 +1240,7 @@ function applyCloudPayload(remote){
   // Run the one-time season migration only after the cloud copy is merged (it's the source of
   // truth), so the season baseline is taken from the real latest star count, not a stale local one.
   const migrated = normalizeConfig(config) | migrateSeason();
+  if(remoteAt) setSavedAt(remoteAt);
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){}
   try{ localStorage.setItem(STATS_KEY, JSON.stringify(wordStats)); }catch(e){}
   try{ localStorage.setItem(LESSON_KEY, JSON.stringify(lessonOverrides)); }catch(e){}
@@ -1291,6 +1326,12 @@ let save = loadSave();
 const MODE_KEY = 'pipiForest_mode_v1';
 let currentMode = null;
 try{ currentMode = localStorage.getItem(MODE_KEY); }catch(e){}
+// 家長測試模式 is a one-session tool: a device left in it (e.g. after using the admin panel) silently
+// stopped crediting stars and check-ins the next time 蔚瑄 played, so always start back in 蔚瑄 mode.
+if(currentMode === 'parent'){
+  currentMode = 'vicky';
+  try{ localStorage.setItem(MODE_KEY, 'vicky'); }catch(e){}
+}
 
 function todayStr(){
   const d = new Date();
@@ -1311,10 +1352,12 @@ function daysBetweenDates(a, b){
 function checkDailyStatus(){
   if(currentMode !== 'vicky') return;
   const today = todayStr();
+  let changed = false;
   if(save.dailyStreak > 0 && save.lastCheckinDate){
     const yesterday = dateStrOffset(today, -1);
     if(save.lastCheckinDate !== today && save.lastCheckinDate !== yesterday){
       save.dailyStreak = 0; // streak broken — reset immediately instead of waiting for the next check-in
+      changed = true;
     }
   }
   if(save.lastSeenDate && save.lastSeenDate !== today){
@@ -1324,8 +1367,10 @@ function checkDailyStatus(){
       if(greetEl) greetEl.textContent = '哈囉,好久不見!上次看到你是 ' + gap + ' 天前,我們重新開始打卡吧!🎃';
     }
   }
-  save.lastSeenDate = today;
-  saveSave();
+  if(save.lastSeenDate !== today){ save.lastSeenDate = today; changed = true; }
+  // Local-only write: these are derived from dates, so don't stamp/push them — a push-on-open from a
+  // stale device would otherwise look "newer" than the real cloud copy and overwrite it.
+  if(changed){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} }
   renderDailyBanner();
 }
 function openModePicker(){
