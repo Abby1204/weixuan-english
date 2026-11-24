@@ -1877,12 +1877,25 @@ function renderDots(container, total, idx, results){
 }
 
 /* ================= LESSON PICKER (home) ================= */
+/* The same word can live in several lessons (ocean in L1 and L17, river in L2/L5/L15...). Selecting
+   them all used to ask it two or three times in a "全部作答" round. Merge by word so every distinct
+   word is quizzed/spelled once; a differing meaning from another lesson is appended to the first. */
 function getPool(){
-  const arr = [];
+  const byWord = new Map();
   Array.from(selectedLessons).sort((a,b)=>a-b).forEach(n=>{
-    getLessonWords(n).forEach(w=> arr.push({en:w.en, zh:w.zh, lesson:n}));
+    getLessonWords(n).forEach(w=>{
+      const key = w.en.trim().toLowerCase();
+      const seen = byWord.get(key);
+      if(!seen){
+        byWord.set(key, {en:w.en, zh:w.zh, lesson:n});
+      } else if(!seen.zh.includes(w.zh) && !w.zh.includes(seen.zh)){
+        seen.zh += '／' + w.zh;
+      } else if(w.zh.length > seen.zh.length && w.zh.includes(seen.zh)){
+        seen.zh = w.zh;
+      }
+    });
   });
-  return arr;
+  return Array.from(byWord.values());
 }
 function renderLessonGrid(){
   const grid = document.getElementById('lessonGrid');
@@ -2280,7 +2293,7 @@ function renderQuiz(){
   renderDots(document.getElementById('quizDots'), quizItems.length, quizIdx, quizResults);
   const item = quizItems[quizIdx];
   const askEnglish = Math.random() < 0.5;
-  const distractors = pickN(quizPool.filter(v=>v.en!==item.en), 3);
+  const distractors = pickN(quizPool.filter(v=>v.en!==item.en && v.zh!==item.zh), 3);
   const optionItems = shuffle([item, ...distractors]);
   const correctIndex = optionItems.findIndex(o=>o.en===item.en);
 
